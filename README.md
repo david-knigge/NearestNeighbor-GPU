@@ -13,9 +13,9 @@ Nearest Neighbor implementation for bit-vectors on GPU.
 ## Project Contributors
 
 <dl>
-  <dd>David Vos</dd>
-  <dd>Marcel Velez</dd>
-  <dd>Myrthe Moring</dd>
-  <dd>Lisa Salomons</dd>
-  <dd>David Knigge</dd>
+<dd>David Vos</dd>
+<dd>Marcel Velez</dd>
+<dd>Myrthe Moring</dd>
+<dd>Lisa Salomons</dd>
+<dd>David Knigge</dd>
 </dl>
