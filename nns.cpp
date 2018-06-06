@@ -1,40 +1,43 @@
-#include <iostream>
-#include <bitset>
+#include <array>
+#include <vector>
+#include <cstdint>
+
+#define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
+
 using namespace std;
 
-Typedef std::array<uint32_t, nw> bitvec_t ;
-Std:: vector<bitvector_t> list_t;
-Std::vector<std::pair<size_t, size_t>> output_t; (I)
-Typedef void(size_t, size_t)* fpair;
+using uint32_t; // 32-bit unsigned integer used inside bitvector
+using size_t;   // unsigned integer for indices
 
+// type for bitvector
+typedef array<NW, uint32_t> bitvec_t;
+// type for lists of bitvectors
+typedef vector<bitvec_t> list_t;
+// type for any function that takes 2 indices
+typedef void(*callback_pair_t)(size_t, size_t);
+// type for any function that takes a list_t by reference
+typedef void(*callback_list_t)(list_t&);
 
+inline size_t hammingweight(uint32_t n) {
+   return __builtin_popcount(n);
+}
 
+void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
-int do_some_loopjes( int bit_vec1, int bit_vec2) {
-    for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < i; j++) {
-            cout << std::bitset<16>((i*j*bit_vec1)^(i*j*bit_vec2)), cout << '\n';
+    list_t output;
+
+    // go over all unique pairs 0 <= j < i < L.size()
+    for (size_t i = 0; i < L.size(); ++i)    {
+        for (size_t j = 0; j < i; ++j)    {
+            // compute hamming weight of (L[i] ^ L[j])
+            size_t w = 0;
+            for (size_t k = 0; k < NW; ++k)
+                w += hammingweight(L[i][k] ^ L[j][k]);
+            // if below given threshold then put into output list
+            if (w < t)
+                output.emplace_back(i,j);
         }
-    }
-}
-
-int main() {
-    int vec1, vec2;
-    cout << "Hello, World!";
-    cin >> vec1;
-    cin >> vec2;
-    cout << do_some_loopjes(vec1,vec2);
-    return 0;
-}
-
-bitvec_t generate_bitvec() {
-    
-}
-
-void NNS(L, t) {
-    for (int i = 0; i < L.size(); i++) {
-        for (int j = 0; j < i; j++) {
-
-        }
+        // periodically give outputlist back for further processing
+        f(output); // assume it empties output
     }
 }
