@@ -1,6 +1,7 @@
 #include <array>
 #include <vector>
 #include <cstdint>
+#include <iostream>
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 
@@ -11,13 +12,13 @@ using std::size_t;   // unsigned integer for indices
 
 //
 // type for bitvector
-typedef array<std::uint32_t, NW> bitvec_t;
+typedef array<uint32_t, NW> bitvec_t;
 // type for lists of bitvectors
 typedef vector<bitvec_t> list_t;
 // type for any function that takes 2 indices
 typedef void(*callback_pair_t)(size_t, size_t);
 // type for any function that takes a list_t by reference
-typedef void(*callback_list_t)(list_t&);
+typedef void(*callback_list_t)(list_t);
 
 inline size_t hammingweight(uint32_t n) {
    return __builtin_popcount(n);
@@ -32,18 +33,19 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
         for (size_t j = 0; j < i; ++j)    {
             // compute hamming weight of (L[i] ^ L[j])
             size_t w = 0;
-            for (size_t k = 0; k < NW; ++k)
-                w += hammingweight(L[i][k] ^ L[j][k]);
+            for (size_t k = 0; k < NW; ++k) {
+              w += hammingweight(L[i][k] ^ L[j][k]);
+            }
             // if below given threshold then put into output list
-            // if (w < t)
-                // output.emplace_back(i,j);
+            if (w < t)
+              output.emplace_back(i,j);
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
+
     }
 }
 
 int main() {
     return 0;
-
 }
