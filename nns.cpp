@@ -35,8 +35,8 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             for (size_t k = 0; k < NW; ++k)
                 w += hammingweight(L[i][k] ^ L[j][k]);
             // if below given threshold then put into output list
-            // if (w < t)
-                // output.emplace_back(i,j);
+            if (w < t)
+                output.emplace_back(L[i], L[j]);
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
