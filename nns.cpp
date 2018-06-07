@@ -6,11 +6,12 @@
 
 using namespace std;
 
-using uint32_t; // 32-bit unsigned integer used inside bitvector
-using size_t;   // unsigned integer for indices
+using std::uint32_t; // 32-bit unsigned integer used inside bitvector
+using std::size_t;   // unsigned integer for indices
 
+//
 // type for bitvector
-typedef array<NW, uint32_t> bitvec_t;
+typedef array<std::uint32_t, NW> bitvec_t;
 // type for lists of bitvectors
 typedef vector<bitvec_t> list_t;
 // type for any function that takes 2 indices
@@ -23,9 +24,9 @@ inline size_t hammingweight(uint32_t n) {
 }
 
 void NSS(const list_t& L, size_t t, callback_list_t f)  {
-  
+
     list_t output;
-   
+
     // go over all unique pairs 0 <= j < i < L.size()
     for (size_t i = 0; i < L.size(); ++i)    {
         for (size_t j = 0; j < i; ++j)    {
@@ -34,10 +35,15 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             for (size_t k = 0; k < NW; ++k)
                 w += hammingweight(L[i][k] ^ L[j][k]);
             // if below given threshold then put into output list
-            if (w < t)
-                output.emplace_back(i,j);
+            // if (w < t)
+                // output.emplace_back(i,j);
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
     }
+}
+
+int main() {
+    return 0;
+
 }
