@@ -1,4 +1,0 @@
-/Users/davidvos/Sites/NearestNeighbor-GPU/generate_data.cpp:9:21: error: C++ requires a type specifier for all declarations
-using namespace std;antichess;;
-                    ^
-1 error generated.
