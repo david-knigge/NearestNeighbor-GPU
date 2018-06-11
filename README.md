@@ -23,4 +23,3 @@ David Knigge
 [CUDA Tutorial](http://www.nvidia.com/docs/IO/116711/sc11-cuda-c-basics.pdf)
 
 [CUDA MakeFile](https://stackoverflow.com/questions/1607015/how-should-a-very-simple-makefile-look-like-for-cuda-compiling-under-linux)
-

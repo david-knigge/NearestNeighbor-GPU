@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\generate_data.cpp:5:27: error: variable or field 'generate_random_list' declared void
  void generate_random_list(list_t& output, size_t n) {
                            ^~~~~~
@@ -8,3 +9,9 @@ C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\generate_data.
 C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\generate_data.cpp:5:50: error: expected primary-expression before 'n'
  void generate_random_list(list_t& output, size_t n) {
                                                   ^
+=======
+/Users/davidvos/Sites/NearestNeighbor-GPU/generate_data.cpp:9:21: error: C++ requires a type specifier for all declarations
+using namespace std;antichess;;
+                    ^
+1 error generated.
+>>>>>>> 8a3007692be12c695feda23c4e4dd652f292b25f
