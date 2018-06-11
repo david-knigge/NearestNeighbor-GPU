@@ -1,5 +1,7 @@
 ## Ignore C++ files
 
+compiling_error.txt
+
 # Prerequisites
 *.d
 

@@ -20,6 +20,21 @@ typedef void(*callback_pair_t)(size_t, size_t);
 // type for any function that takes a list_t by reference
 typedef void(*callback_list_t)(list_t);
 
+#define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
+
+using std::uint32_t; // 32-bit unsigned integer used inside bitvector
+using std::size_t;   // unsigned integer for indices
+
+// type for bitvector
+typedef array<uint32_t, NW> bitvec_t;
+// type for lists of bitvectors
+typedef vector<bitvec_t> list_t;
+// type for any function that takes 2 indices
+typedef void(*callback_pair_t)(size_t, size_t);
+// type for any function that takes a list_t by reference
+typedef void(*callback_list_t)(list_t);
+
+
 void generate_random_list(list_t& output, size_t n) {
     // a true randomness source
     random_device rd;
