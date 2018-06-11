@@ -1,17 +1,35 @@
-<<<<<<< HEAD
-C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\generate_data.cpp:5:27: error: variable or field 'generate_random_list' declared void
+In file included from C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\nns.cpp:7:0:
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:15:9: error: 'array' does not name a type
+ typedef array<uint32_t, NW> bitvec_t;
+         ^~~~~
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:17:9: error: 'vector' does not name a type
+ typedef vector<bitvec_t> list_t;
+         ^~~~~~
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:21:38: error: typedef 'callback_list_t' is initialized (use decltype instead)
+ typedef void(*callback_list_t)(list_t);
+                                      ^
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:21:32: error: 'list_t' was not declared in this scope
+ typedef void(*callback_list_t)(list_t);
+                                ^~~~~~
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:29:9: error: 'array' does not name a type
+ typedef array<uint32_t, NW> bitvec_t;
+         ^~~~~
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:31:9: error: 'vector' does not name a type
+ typedef vector<bitvec_t> list_t;
+         ^~~~~~
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:35:38: error: typedef 'callback_list_t' is initialized (use decltype instead)
+ typedef void(*callback_list_t)(list_t);
+                                      ^
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:35:32: error: 'list_t' was not declared in this scope
+ typedef void(*callback_list_t)(list_t);
+                                ^~~~~~
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:38:27: error: variable or field 'generate_random_list' declared void
  void generate_random_list(list_t& output, size_t n) {
                            ^~~~~~
-C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\generate_data.cpp:5:27: error: 'list_t' was not declared in this scope
-C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\generate_data.cpp:5:35: error: 'output' was not declared in this scope
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:38:27: error: 'list_t' was not declared in this scope
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:38:35: error: 'output' was not declared in this scope
  void generate_random_list(list_t& output, size_t n) {
                                    ^~~~~~
-C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\generate_data.cpp:5:50: error: expected primary-expression before 'n'
+c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:38:50: error: expected primary-expression before 'n'
  void generate_random_list(list_t& output, size_t n) {
                                                   ^
-=======
-/Users/davidvos/Sites/NearestNeighbor-GPU/generate_data.cpp:9:21: error: C++ requires a type specifier for all declarations
-using namespace std;antichess;;
-                    ^
-1 error generated.
->>>>>>> 8a3007692be12c695feda23c4e4dd652f292b25f

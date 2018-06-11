@@ -6,7 +6,7 @@
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 
-using namespace std;antichess;;
+//using namespace std;antichess;;
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 using std::size_t;   // unsigned integer for indices
@@ -53,8 +53,6 @@ void generate_random_list(list_t& output, size_t n) {
     }
     // output list is given by reference, so nothing to return
 }
-<<<<<<< HEAD
-=======
 
 int main()  {
     list_t bitvecs;
@@ -64,4 +62,3 @@ int main()  {
         cout << bitvecs[1][i];
     }
 }
->>>>>>> 8a3007692be12c695feda23c4e4dd652f292b25f
