@@ -1,7 +1,10 @@
 #include <array>
 #include <vector>
+#include <bitset>
+
 #include <cstdint>
 #include <iostream>
+#include "./generate_data.cpp"
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 
@@ -26,8 +29,10 @@ inline size_t hammingweight(uint32_t n) {
 void printsomestuff(list_t output) {
     for (size_t i = 0; i < output.size(); i++) {
         for (size_t j = 0; j < output[0].size(); j++) {
-            cout << output[i][j], cout << '\n';
+            std::bitset<8> x(output[i][j]);
+            cout << x, cout << ' ';
         }
+         cout << '\n';
     }
 }
 
@@ -43,10 +48,11 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             size_t w = 0;
             for (size_t k = 0; k < NW; ++k) {
               w += hammingweight(L[i][k] ^ L[j][k]);
+              cout << w, cout << ' ';
             }
             // if below given threshold then put into output list
             if (w < t)
-                output.emplace_back(bob,anna);
+                output.emplace_back(L[i],L[j]);
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
@@ -55,9 +61,12 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 }
 
 int main() {
-    bitvec_t mijn = [1,1];
-    list_t test = [mijn,mijn];
-    size_t thersh = 9298283798291;
+    list_t test;
+    size_t leng = 2;
+    generate_random_list(test, leng);
+    size_t thersh = 98291;
+    cout << leng, cout << ' ';
     NSS(test, thersh, printsomestuff);
+    cout << "klaar";
     return 0;
 }
