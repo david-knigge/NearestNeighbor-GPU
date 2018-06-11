@@ -1,9 +1,11 @@
+
 #include <random>
 #include <iostream>
 #include <array>
 #include <vector>
 #include <cstdint>
 
+<<<<<<< HEAD
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 
 //using namespace std;antichess;;
@@ -19,6 +21,9 @@ typedef vector<bitvec_t> list_t;
 typedef void(*callback_pair_t)(size_t, size_t);
 // type for any function that takes a list_t by reference
 typedef void(*callback_list_t)(list_t);
+=======
+using namespace std;
+>>>>>>> 2810c543461ceef77075830b5c61dbaa12ae128e
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 
@@ -47,18 +52,8 @@ void generate_random_list(list_t& output, size_t n) {
     output.resize(n);
     // set random value for each element
     for (size_t i = 0; i < n; ++n)  {
-        for (size_t k = 0; k < NW; ++k) {
+        for (size_t k = 0; k < NW; ++k)
             output[i][k] = mt();
-        }
     }
     // output list is given by reference, so nothing to return
-}
-
-int main()  {
-    list_t bitvecs;
-    generate_random_list(bitvecs, 2);
-
-    for (size_t i = 0; i < 10; i++) {
-        cout << bitvecs[1][i];
-    }
 }
