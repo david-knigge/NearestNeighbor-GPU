@@ -1,24 +1,4 @@
-In file included from /Users/davidvos/Sites/NearestNeighbor-GPU/nns.cpp:1:
-In file included from /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/array:109:
-In file included from /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/algorithm:643:
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/memory:1759:31: error: no matching constructor for initialization of 'std::__1::array<unsigned int, 8>'
-            ::new((void*)__p) _Up(_VSTD::forward<_Args>(__args)...);
-                              ^   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/memory:1670:18: note: in instantiation of function template specialization 'std::__1::allocator<std::__1::array<unsigned int, 8> >::construct<std::__1::array<unsigned int, 8>, unsigned long &, unsigned long &>' requested here
-            {__a.construct(__p, _VSTD::forward<_Args>(__args)...);}
-                 ^
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/memory:1516:14: note: in instantiation of function template specialization 'std::__1::allocator_traits<std::__1::allocator<std::__1::array<unsigned int, 8> > >::__construct<std::__1::array<unsigned int, 8>, unsigned long &, unsigned long &>' requested here
-            {__construct(__has_construct<allocator_type, _Tp*, _Args...>(),
-             ^
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/vector:1637:25: note: in instantiation of function template specialization 'std::__1::allocator_traits<std::__1::allocator<std::__1::array<unsigned int, 8> > >::construct<std::__1::array<unsigned int, 8>, unsigned long &, unsigned long &>' requested here
-        __alloc_traits::construct(this->__alloc(),
-                        ^
-/Users/davidvos/Sites/NearestNeighbor-GPU/nns.cpp:41:22: note: in instantiation of function template specialization 'std::__1::vector<std::__1::array<unsigned int, 8>, std::__1::allocator<std::__1::array<unsigned int, 8> > >::emplace_back<unsigned long &, unsigned long &>' requested here
-              output.emplace_back(i,j);
-                     ^
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/array:121:29: note: candidate constructor (the implicit copy constructor) not viable: requires 1 argument, but 2 were provided
-struct _LIBCPP_TEMPLATE_VIS array
-                            ^
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/array:121:29: note: candidate constructor (the implicit move constructor) not viable: requires 1 argument, but 2 were provided
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/array:121:29: note: candidate constructor (the implicit default constructor) not viable: requires 0 arguments, but 2 were provided
+/Users/davidvos/Sites/NearestNeighbor-GPU/generate_data.cpp:9:21: error: C++ requires a type specifier for all declarations
+using namespace std;antichess;;
+                    ^
 1 error generated.
