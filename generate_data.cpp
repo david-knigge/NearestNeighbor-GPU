@@ -1,3 +1,4 @@
+
 #include <random>
 #include <iostream>
 #include <array>
@@ -33,9 +34,8 @@ void generate_random_list(list_t& output, size_t n) {
     output.resize(n);
     // set random value for each element
     for (size_t i = 0; i < n; ++n)  {
-        for (size_t k = 0; k < NW; ++k) {
+        for (size_t k = 0; k < NW; ++k)
             output[i][k] = mt();
-        }
     }
     // output list is given by reference, so nothing to return
 }
