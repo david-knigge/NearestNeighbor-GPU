@@ -57,7 +57,16 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             }
             // if below given threshold then put into output list
             if (w < t)
+<<<<<<< HEAD
                 output.emplace_back();
+=======
+            {
+                compound_t callback_pair;
+                callback_pair[0] = i;
+                callback_pair[1] = j;
+                output.emplace_back(callback_pair);
+            }
+>>>>>>> 8d2e8147ffc3e19677e8f46a5126e80affeca838
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
@@ -73,5 +82,6 @@ int main() {
     cout << leng, cout << ' ';
     NSS(test, thersh, printsomestuff);
     cout << "klaar";
+    cout.flush();
     return 0;
 }
