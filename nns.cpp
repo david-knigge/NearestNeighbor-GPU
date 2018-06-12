@@ -15,18 +15,22 @@ using std::size_t;   // unsigned integer for indices
 
 // type for bitvector
 typedef array<uint32_t, NW> bitvec_t;
+typedef array<size_t, 2> compound_t;
 // type for lists of bitvectors
 typedef vector<bitvec_t> list_t;
+typedef vector<compound_t> output_t;
+
 // type for any function that takes 2 indices
-typedef void(*callback_pair_t)(size_t, size_t);
+// typedef void(*callback_pair_t)(size_t, size_t);
 // type for any function that takes a list_t by reference
-typedef void(*callback_list_t)(list_t);
+
+typedef void(*callback_list_t)(output_t);
 
 inline size_t hammingweight(uint32_t n) {
    return __builtin_popcount(n);
 }
 
-void printsomestuff(list_t output) {
+void printsomestuff(output_t output) {
     for (size_t i = 0; i < output.size(); i++) {
         for (size_t j = 0; j < output[0].size(); j++) {
             std::bitset<8> x(output[i][j]);
@@ -38,8 +42,7 @@ void printsomestuff(list_t output) {
 
 void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
-    list_t output;
-    bitvec_t bob, anna;
+    output_t output;
 
     // go over all unique pairs 0 <= j < i < L.size()
     for (size_t i = 0; i < L.size(); ++i)    {
@@ -48,11 +51,13 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             size_t w = 0;
             for (size_t k = 0; k < NW; ++k) {
               w += hammingweight(L[i][k] ^ L[j][k]);
-              cout << w, cout << ' ';
+              // std::bitset<8> x(w);
+
+              cout << w, cout << ' ',cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
             }
             // if below given threshold then put into output list
             if (w < t)
-                output.emplace_back(L[i],L[j]);
+                output.emplace_back(i,j);
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
