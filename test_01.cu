@@ -40,4 +40,3 @@ int main(void)
   free(x);
   free(y);
 }
-z
