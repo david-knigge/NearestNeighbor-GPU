@@ -78,5 +78,6 @@ int main() {
     cout << leng, cout << ' ';
     NSS(test, thersh, printsomestuff);
     cout << "klaar";
+    cout.flush();
     return 0;
 }
