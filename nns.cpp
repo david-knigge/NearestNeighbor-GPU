@@ -52,7 +52,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             }
             // if below given threshold then put into output list
             if (w < t)
-                output.emplace_back(L[i],L[j]);
+                output.emplace_back(i,j);
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
