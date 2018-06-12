@@ -14,12 +14,11 @@ typedef array<size_t, 2> compound_t;
 // type for lists of bitvectors
 typedef vector<bitvec_t> list_t;
 typedef vector<compound_t> output_t;
-
 // type for any function that takes 2 indices
-// typedef void(*callback_pair_t)(size_t, size_t);
+typedef void(*callback_pair_t)(size_t, size_t);
 // type for any function that takes a list_t by reference
+typedef void(*callback_list_t)(output_t);
 
-// typedef void(*callback_list_t)(output_t);
 
 
 
@@ -34,7 +33,7 @@ void generate_random_list(list_t& output, size_t n) {
     // resize output to hold n elements
     output.resize(n);
     // set random value for each element
-    for (size_t i = 0; i < n; ++n)  {
+    for (size_t i = 0; i < n; ++i)  {
         for (size_t k = 0; k < NW; ++k)
             output[i][k] = mt();
     }
