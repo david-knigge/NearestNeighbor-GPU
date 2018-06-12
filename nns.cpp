@@ -26,7 +26,7 @@ inline size_t hammingweight(uint32_t n) {
    return __builtin_popcount(n);
 }
 
-void printsomestuff(list_t output) {
+void print_indices(list_t output) {
     for (size_t i = 0; i < output.size(); i++) {
         for (size_t j = 0; j < output[0].size(); j++) {
             std::bitset<8> x(output[i][j]);
@@ -52,7 +52,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             }
             // if below given threshold then put into output list
             if (w < t)
-                output.emplace_back(i,j);
+                output.emplace_back(i, j);
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
@@ -64,9 +64,9 @@ int main() {
     list_t test;
     size_t leng = 2;
     generate_random_list(test, leng);
-    size_t thersh = 98291;
+    size_t threshold = 98291;
     cout << leng, cout << ' ';
-    NSS(test, thersh, printsomestuff);
+    NSS(test, threshold, print_indices);
     cout << "klaar";
     return 0;
 }
