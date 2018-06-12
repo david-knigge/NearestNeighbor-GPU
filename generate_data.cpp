@@ -16,10 +16,10 @@ typedef vector<bitvec_t> list_t;
 typedef vector<compound_t> output_t;
 
 // type for any function that takes 2 indices
-typedef void(*callback_pair_t)(size_t, size_t);
+// typedef void(*callback_pair_t)(size_t, size_t);
 // type for any function that takes a list_t by reference
 
-typedef void(*callback_list_t)(output_t);
+// typedef void(*callback_list_t)(output_t);
 
 
 
