@@ -1,62 +1,22 @@
-<<<<<<< HEAD
-In file included from C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\nns.cpp:7:0:
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:15:9: error: 'array' does not name a type
- typedef array<uint32_t, NW> bitvec_t;
-         ^~~~~
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:17:9: error: 'vector' does not name a type
- typedef vector<bitvec_t> list_t;
-         ^~~~~~
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:21:38: error: typedef 'callback_list_t' is initialized (use decltype instead)
- typedef void(*callback_list_t)(list_t);
-                                      ^
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:21:32: error: 'list_t' was not declared in this scope
- typedef void(*callback_list_t)(list_t);
-                                ^~~~~~
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:29:9: error: 'array' does not name a type
- typedef array<uint32_t, NW> bitvec_t;
-         ^~~~~
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:31:9: error: 'vector' does not name a type
- typedef vector<bitvec_t> list_t;
-         ^~~~~~
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:35:38: error: typedef 'callback_list_t' is initialized (use decltype instead)
- typedef void(*callback_list_t)(list_t);
-                                      ^
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:35:32: error: 'list_t' was not declared in this scope
- typedef void(*callback_list_t)(list_t);
-                                ^~~~~~
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:38:27: error: variable or field 'generate_random_list' declared void
- void generate_random_list(list_t& output, size_t n) {
-                           ^~~~~~
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:38:27: error: 'list_t' was not declared in this scope
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:38:35: error: 'output' was not declared in this scope
- void generate_random_list(list_t& output, size_t n) {
-                                   ^~~~~~
-c:\users\lisas\desktop\uva\tweedejaarsproject\nearestneighbor-gpu\generate_data.cpp:38:50: error: expected primary-expression before 'n'
- void generate_random_list(list_t& output, size_t n) {
-                                                  ^
-=======
-In file included from /Users/davidvos/Sites/NearestNeighbor-GPU/nns.cpp:1:
-In file included from /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/array:109:
-In file included from /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/algorithm:643:
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/memory:1759:31: error: no matching constructor for initialization of 'std::__1::array<unsigned int, 8>'
-            ::new((void*)__p) _Up(_VSTD::forward<_Args>(__args)...);
-                              ^   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/memory:1670:18: note: in instantiation of function template specialization 'std::__1::allocator<std::__1::array<unsigned int, 8> >::construct<std::__1::array<unsigned int, 8>, const std::__1::array<unsigned int, 8> &, const std::__1::array<unsigned int, 8> &>' requested here
-            {__a.construct(__p, _VSTD::forward<_Args>(__args)...);}
-                 ^
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/memory:1516:14: note: in instantiation of function template specialization 'std::__1::allocator_traits<std::__1::allocator<std::__1::array<unsigned int, 8> > >::__construct<std::__1::array<unsigned int, 8>, const std::__1::array<unsigned int, 8> &, const std::__1::array<unsigned int, 8> &>' requested here
-            {__construct(__has_construct<allocator_type, _Tp*, _Args...>(),
-             ^
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/vector:1637:25: note: in instantiation of function template specialization 'std::__1::allocator_traits<std::__1::allocator<std::__1::array<unsigned int, 8> > >::construct<std::__1::array<unsigned int, 8>, const std::__1::array<unsigned int, 8> &, const std::__1::array<unsigned int, 8> &>' requested here
-        __alloc_traits::construct(this->__alloc(),
-                        ^
-/Users/davidvos/Sites/NearestNeighbor-GPU/nns.cpp:55:24: note: in instantiation of function template specialization 'std::__1::vector<std::__1::array<unsigned int, 8>, std::__1::allocator<std::__1::array<unsigned int, 8> > >::emplace_back<const std::__1::array<unsigned int, 8> &, const std::__1::array<unsigned int, 8> &>' requested here
-                output.emplace_back(L[i],L[j]);
-                       ^
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/array:121:29: note: candidate constructor (the implicit copy constructor) not viable: requires 1 argument, but 2 were provided
-struct _LIBCPP_TEMPLATE_VIS array
-                            ^
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/array:121:29: note: candidate constructor (the implicit move constructor) not viable: requires 1 argument, but 2 were provided
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/array:121:29: note: candidate constructor (the implicit default constructor) not viable: requires 0 arguments, but 2 were provided
-1 error generated.
->>>>>>> 2810c543461ceef77075830b5c61dbaa12ae128e
+In file included from c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\mingw32\bits\c++allocator.h:33:0,
+                 from c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\allocator.h:46,
+                 from c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\string:41,
+                 from c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\stdexcept:39,
+                 from c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\array:39,
+                 from C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\nns.cpp:1:
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\ext\new_allocator.h: In instantiation of 'void __gnu_cxx::new_allocator<_Tp>::construct(_Up*, _Args&& ...) [with _Up = std::array<unsigned int, 8u>; _Args = {int, std::pair<unsigned int, unsigned int>}; _Tp = std::array<unsigned int, 8u>]':
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\alloc_traits.h:455:4:   required from 'static void std::allocator_traits<std::allocator<_CharT> >::construct(std::allocator_traits<std::allocator<_CharT> >::allocator_type&, _Up*, _Args&& ...) [with _Up = std::array<unsigned int, 8u>; _Args = {int, std::pair<unsigned int, unsigned int>}; _Tp = std::array<unsigned int, 8u>; std::allocator_traits<std::allocator<_CharT> >::allocator_type = std::allocator<std::array<unsigned int, 8u> >]'
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\bits\vector.tcc:96:30:   required from 'void std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {int, std::pair<unsigned int, unsigned int>}; _Tp = std::array<unsigned int, 8u>; _Alloc = std::allocator<std::array<unsigned int, 8u> >]'
+C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\nns.cpp:55:60:   required from here
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\ext\new_allocator.h:120:4: error: no matching function for call to 'std::array<unsigned int, 8u>::array(std::pair<unsigned int, unsigned int>)'
+  { ::new((void *)__p) _Up(std::forward<_Args>(__args)...); }
+    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from C:\Users\lisas\Desktop\UVA\Tweedejaarsproject\NearestNeighbor-GPU\nns.cpp:1:0:
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\array:90:12: note: candidate: std::array<unsigned int, 8u>::array()
+     struct array
+            ^~~~~
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\array:90:12: note:   candidate expects 0 arguments, 1 provided
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\array:90:12: note: candidate: constexpr std::array<unsigned int, 8u>::array(const std::array<unsigned int, 8u>&)
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\array:90:12: note:   no known conversion for argument 1 from 'std::pair<unsigned int, unsigned int>' to 'const std::array<unsigned int, 8u>&'
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\array:90:12: note: candidate: constexpr std::array<unsigned int, 8u>::array(std::array<unsigned int, 8u>&&)
+c:\mingw\lib\gcc\mingw32\6.3.0\include\c++\array:90:12: note:   no known conversion for argument 1 from 'std::pair<unsigned int, unsigned int>' to 'std::array<unsigned int, 8u>&&'

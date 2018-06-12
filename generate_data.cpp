@@ -1,29 +1,7 @@
-
 #include <random>
 #include <iostream>
-#include <array>
-#include <vector>
-#include <cstdint>
 
-<<<<<<< HEAD
-#define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-
-//using namespace std;antichess;;
-
-using std::uint32_t; // 32-bit unsigned integer used inside bitvector
-using std::size_t;   // unsigned integer for indices
-
-// type for bitvector
-typedef array<uint32_t, NW> bitvec_t;
-// type for lists of bitvectors
-typedef vector<bitvec_t> list_t;
-// type for any function that takes 2 indices
-typedef void(*callback_pair_t)(size_t, size_t);
-// type for any function that takes a list_t by reference
-typedef void(*callback_list_t)(list_t);
-=======
 using namespace std;
->>>>>>> 2810c543461ceef77075830b5c61dbaa12ae128e
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 
