@@ -30,7 +30,7 @@ inline size_t hammingweight(uint32_t n) {
    return __builtin_popcount(n);
 }
 
-void print_indices(list_t output) {
+void print_indices(output_t output) {
     for (size_t i = 0; i < output.size(); i++) {
         for (size_t j = 0; j < output[0].size(); j++) {
             std::bitset<8> x(output[i][j]);
