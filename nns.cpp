@@ -36,7 +36,7 @@ void print_indices(output_t output) {
             std::bitset<8> x(output[i][j]);
             cout << x, cout << ' ';
         }
-         cout << '\n';
+        cout << '\n';
     }
 }
 
@@ -52,12 +52,10 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             for (size_t k = 0; k < NW; ++k) {
               w += hammingweight(L[i][k] ^ L[j][k]);
               // std::bitset<8> x(w);
-
-              cout << w, cout << ' ',cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
+              cout << w, cout << ' ', cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
             }
             // if below given threshold then put into output list
-            if (w < t)
-            {
+            if (w < t)  {
                 compound_t callback_pair;
                 callback_pair[0] = i;
                 callback_pair[1] = j;
