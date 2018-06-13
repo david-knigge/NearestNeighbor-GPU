@@ -34,17 +34,13 @@ inline size_t hammingweight(uint32_t n) {
    return __builtin_popcount(n);
 }
 
-void print_indices(output_t output) {
+void printsomestuff(output_t output) {
     for (size_t i = 0; i < output.size(); i++) {
         for (size_t j = 0; j < output[0].size(); j++) {
             std::bitset<8> x(output[i][j]);
             //cout << x , cout << ' ';
         }
-<<<<<<< HEAD
          //cout << '\n';
-=======
-        cout << '\n';
->>>>>>> e975a79ffb9bbc6d17a9b6a1f8ee35fbf2380371
     }
 }
 
@@ -60,15 +56,12 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             for (size_t k = 0; k < NW; ++k) {
               w += hammingweight(L[i][k] ^ L[j][k]);
               // std::bitset<8> x(w);
-<<<<<<< HEAD
 
               //cout << w, cout << ' ',cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
-=======
-              cout << w, cout << ' ', cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
->>>>>>> e975a79ffb9bbc6d17a9b6a1f8ee35fbf2380371
             }
             // if below given threshold then put into output list
-            if (w < t)  {
+            if (w < t)
+            {
                 compound_t callback_pair;
                 callback_pair[0] = i;
                 callback_pair[1] = j;
@@ -83,7 +76,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    size_t leng = 50;
+    size_t leng = 5000;
 
     // Clock for timing the function
     clock_t start;
@@ -91,7 +84,6 @@ int main() {
     start = clock();
 
     generate_random_list(test, leng);
-<<<<<<< HEAD
     size_t thersh = 98291;
     //cout << leng, cout << ' ';
     NSS(test, thersh, printsomestuff);
@@ -100,11 +92,6 @@ int main() {
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
 
     cout<<"printf: "<< duration <<'\n';
-=======
-    size_t threshold = 98291;
-    cout << leng, cout << ' ';
-    NSS(test, threshold, print_indices);
->>>>>>> e975a79ffb9bbc6d17a9b6a1f8ee35fbf2380371
     cout << "klaar";
     cout.flush();
     return 0;
