@@ -1,5 +1,8 @@
 #include <random>
 #include <iostream>
+#include <array>
+#include <vector>
+#include <cstdint>
 
 using namespace std;
 
@@ -34,7 +37,7 @@ void generate_random_list(list_t& output, size_t n) {
     // resize output to hold n elements
     output.resize(n);
     // set random value for each element
-    for (size_t i = 0; i < n; ++n)  {
+    for (size_t i = 0; i < n; ++i)  {
         for (size_t k = 0; k < NW; ++k)
             output[i][k] = mt();
     }
