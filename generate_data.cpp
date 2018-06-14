@@ -6,7 +6,7 @@
 
 using namespace std;
 
-#define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
+#define NW 2048 // use bitvectors of d=NW*32 bits, example NW=8
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 using std::size_t;   // unsigned integer for indices
