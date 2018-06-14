@@ -6,7 +6,7 @@
 #include <iostream>
 #include "./generate_data.cpp"
 
-#define NW 2048 // use bitvectors of d=NW*32 bits, example NW=8
+#define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 #define THREADS_PER_BLOCK 512 // Number of threads per block
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
@@ -54,23 +54,20 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             // compute hamming weight of (L[i] ^ L[j])
             size_t w = 0;
 
-            uint32_t *vec_1, *vec_2, *ret_vec;
+            bitvec_t *vec_1, *vec_2, *ret_vec;
             uint32_t *c_vec_1, *c_vec_2, *c_ret_vec; // device copies of a, b, c
             int size = sizeof(bitvec_t);
 
-            vec_1 = (uint32_t *)malloc(size);
-            vec_2 = (uint32_t *)malloc(size);
-            ret_vec = (uint32_t *)malloc(size);
+            vec_1 = (bitvec_t *)malloc(size);
+            vec_2 = (bitvec_t *)malloc(size);
+            ret_vec = (bitvec_t *)malloc(size);
             // Allocate space for device copies of a, b, c
             cudaMalloc((void **)&c_vec_1, size);
             cudaMalloc((void **)&c_vec_2, size);
             cudaMalloc((void **)&c_ret_vec, size);
-            int k;
-            for (k = 0; k < NW; ++k)
-            {
-                vec_1[k] = L[i][k];
-                vec_2[k] = L[j][k];
-            }
+
+            *vec_1 = L[i];
+            *vec_2 = L[j];
 
             // Copy inputs to device
             cudaMemcpy(c_vec_1, vec_1, size, cudaMemcpyHostToDevice);
@@ -84,7 +81,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
             int l;
             for (l = 0; l < NW; ++l) {
-                w += hammingweight(ret_vec[l]);
+                w += hammingweight((*ret_vec)[l]);
             }
 
             // if below given threshold then put into output list
@@ -104,7 +101,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    size_t leng = 3000;
+    size_t leng = 10;
     generate_random_list(test, leng);
     size_t thersh = 98291;
     cout << leng, cout << ' ';
