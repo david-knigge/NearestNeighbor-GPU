@@ -23,22 +23,24 @@ typedef array<size_t, 2> compound_t;
 // type for lists of bitvectors
 typedef vector<bitvec_t> list_t;
 typedef vector<compound_t> output_t;
+
 // type for any function that takes 2 indices
-typedef void(*callback_pair_t)(size_t, size_t);
+// typedef void(*callback_pair_t)(size_t, size_t);
 // type for any function that takes a list_t by reference
+
 typedef void(*callback_list_t)(output_t);
 
 inline size_t hammingweight(uint32_t n) {
    return __builtin_popcount(n);
 }
 
-void print_indices(output_t output) {
+void printsomestuff(output_t output) {
     for (size_t i = 0; i < output.size(); i++) {
         for (size_t j = 0; j < output[0].size(); j++) {
             std::bitset<8> x(output[i][j]);
             //cout << x , cout << ' ';
         }
-        // cout << '\n';
+         //cout << '\n';
     }
 }
 
@@ -58,7 +60,8 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
               //cout << w, cout << ' ',cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
             }
             // if below given threshold then put into output list
-            if (w < t)  {
+            if (w < t)
+            {
                 compound_t callback_pair;
                 callback_pair[0] = i;
                 callback_pair[1] = j;
@@ -73,7 +76,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    size_t leng = 50;
+    size_t leng = 5000;
 
     // Clock for timing the function
     clock_t start;
