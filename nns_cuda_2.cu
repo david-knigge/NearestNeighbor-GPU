@@ -64,17 +64,18 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     //int size = L.size() * sizeof(bitvec_t);
     int size = sizeof(bitvec_t);
 
-    vec = (uint32_t *)malloc(size);
-    vecs = (bitvec_t *)malloc(size * L.size());
-    ret_vec = (uint32_t *)malloc(L.size() * sizeof(uint32_t));
+    vec = (uint32_t *)malloc(sizeof(uint32_t));
+    vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * L.size());
+    ret_vec = (uint32_t *)malloc(sizeof(uint32_t) * L.size());
 
     memcpy(vecs, L.data(), sizeof(bitvec_t *));
 
-    // Allocate space for device copies of a, b, c
+    // Allocate space for device copies of our primary vector, our entire setup
+    // of vectors
     cudaMalloc((void **)&vecd, size);
     cudaMalloc((void **)&vecsd, L.size() * size);
     cudaMalloc((void **)&ret_vecd, L.size() * sizeof(uint32_t));
-    cudaMemcpy(vecsd, vecs, size * L.size(), cudaMemcpyHostToDevice);
+    cudaMemcpy(vecsd, vecs, L.size() * size, cudaMemcpyHostToDevice);
 
     size_t j;
 
