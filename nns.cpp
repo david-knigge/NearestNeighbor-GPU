@@ -40,11 +40,7 @@ void print_indices(output_t output) {
             std::bitset<8> x(output[i][j]);
             //cout << x , cout << ' ';
         }
-<<<<<<< HEAD
-         //cout << '\n';
-=======
         cout << '\n';
->>>>>>> e975a79ffb9bbc6d17a9b6a1f8ee35fbf2380371
     }
 }
 
@@ -60,12 +56,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             for (size_t k = 0; k < NW; ++k) {
               w += hammingweight(L[i][k] ^ L[j][k]);
               // std::bitset<8> x(w);
-<<<<<<< HEAD
-
-              //cout << w, cout << ' ',cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
-=======
               cout << w, cout << ' ', cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
->>>>>>> e975a79ffb9bbc6d17a9b6a1f8ee35fbf2380371
             }
             // if below given threshold then put into output list
             if (w < t)  {
@@ -91,20 +82,9 @@ int main() {
     start = clock();
 
     generate_random_list(test, leng);
-<<<<<<< HEAD
-    size_t thersh = 98291;
-    //cout << leng, cout << ' ';
-    NSS(test, thersh, printsomestuff);
-
-    // Stopping the timer and calculating the real time
-    duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
-
-    cout<<"printf: "<< duration <<'\n';
-=======
     size_t threshold = 98291;
     cout << leng, cout << ' ';
     NSS(test, threshold, print_indices);
->>>>>>> e975a79ffb9bbc6d17a9b6a1f8ee35fbf2380371
     cout << "klaar";
     cout.flush();
     return 0;

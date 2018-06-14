@@ -37,11 +37,7 @@ void generate_random_list(list_t& output, size_t n) {
     // resize output to hold n elements
     output.resize(n);
     // set random value for each element
-<<<<<<< HEAD
-    for (size_t i = 0; i < n; i++)  {
-=======
     for (size_t i = 0; i < n; ++i)  {
->>>>>>> e975a79ffb9bbc6d17a9b6a1f8ee35fbf2380371
         for (size_t k = 0; k < NW; ++k)
             output[i][k] = mt();
     }

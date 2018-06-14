@@ -76,7 +76,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    size_t leng = 5000;
+    size_t leng = 50;
 
     // Clock for timing the function
     clock_t start;
