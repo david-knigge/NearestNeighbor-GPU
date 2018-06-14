@@ -73,7 +73,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     // Allocate space for device copies of a, b, c
     cudaMalloc((void **)&vecd, size);
     cudaMalloc((void **)&vecsd, L.size() * size);
-    cudaMalloc((void **)&ret_vecd, L.size() * size);
+    cudaMalloc((void **)&ret_vecd, L.size() * sizeof(uint32_t));
     cudaMemcpy(vecsd, vecs, size * L.size(), cudaMemcpyHostToDevice);
 
     size_t j;
@@ -84,7 +84,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
         cudaMemcpy(vecd, vec, size, cudaMemcpyHostToDevice);
 
         cuda_xor<<<((i + 1) + THREADS_PER_BLOCK-1) / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd);
-        cudaMemcpy(ret_vec, ret_vecd, size * (i + 1), cudaMemcpyDeviceToHost);
+        cudaMemcpy(ret_vec, ret_vecd, L.size() * sizeof(uint32_t), cudaMemcpyDeviceToHost);
 
         for (j = 0; j < i; ++j)
         {
