@@ -23,3 +23,15 @@ David Knigge
 [CUDA Tutorial](http://www.nvidia.com/docs/IO/116711/sc11-cuda-c-basics.pdf)
 
 [CUDA MakeFile](https://stackoverflow.com/questions/1607015/how-should-a-very-simple-makefile-look-like-for-cuda-compiling-under-linux)
+
+## Remote Server Setup
+
+For libraries:
+```
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/cuda-9.0/lib64
+```
+
+For executables:
+```
+export PATH=${PATH}:/usr/local/cuda/bin
+```

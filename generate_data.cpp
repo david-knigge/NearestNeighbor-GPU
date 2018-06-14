@@ -1,5 +1,8 @@
 #include <random>
 #include <iostream>
+#include <array>
+#include <vector>
+#include <cstdint>
 
 using namespace std;
 

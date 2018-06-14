@@ -28,14 +28,14 @@ inline size_t hammingweight(uint32_t n) {
    return __builtin_popcount(n);
 }
 
-void printsomestuff(output_t& output) {
-    // for (size_t i = 0; i < output.size(); i++) {
-    //     for (size_t j = 0; j < output[0].size(); j++) {
-    //         std::bitset<32> x(output[i][j]);
-    //         cout << output[i][j], cout << ' ';
-    //     }
-    //      cout << '\n';
-    // }
+void print_indices(output_t output) {
+    for (size_t i = 0; i < output.size(); i++) {
+        for (size_t j = 0; j < output[0].size(); j++) {
+            std::bitset<8> x(output[i][j]);
+            cout << x, cout << ' ';
+        }
+        cout << '\n';
+    }
 }
 
 void NSS(const list_t& L, size_t t, callback_list_t f)  {
@@ -49,15 +49,15 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             size_t w = 0;
             for (size_t k = 0; k < NW; ++k) {
               w += hammingweight(L[i][k] ^ L[j][k]);
-
-              // cout << w, cout << ' ',cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
+              // std::bitset<8> x(w);
+              cout << w, cout << ' ', cout << L[i][k], cout << ' ', cout << L[j][k], cout << '\n';
             }
             // if below given threshold then put into output list
-            if (w < t) {
-                compound_t to_be;
-                to_be[0] = i;
-                to_be[1] = j;
-                output.emplace_back(to_be);
+            if (w < t)  {
+                compound_t callback_pair;
+                callback_pair[0] = i;
+                callback_pair[1] = j;
+                output.emplace_back(callback_pair);
             }
         }
         // periodically give outputlist back for further processing
@@ -73,5 +73,6 @@ int main() {
     size_t thersh = 162;
     NSS(test, thersh, printsomestuff);
     cout << "klaar";
+    cout.flush();
     return 0;
 }
