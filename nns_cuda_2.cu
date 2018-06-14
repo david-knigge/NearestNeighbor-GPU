@@ -58,7 +58,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     output_t output;
 
     // go over all unique pairs 0 <= j < i < L.size()
-    const bitvec_t *vecs;
+    bitvec_t *vecs;
     uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec; // device copies of a, b, c
     //int size = L.size() * sizeof(bitvec_t);
     int size = sizeof(bitvec_t);
@@ -67,7 +67,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     vecs = (bitvec_t *)malloc(size * L.size());
     ret_vec = (uint32_t *)malloc(L.size());
 
-    vecs = L.data();
+    memcpy(vecs, L.data(), sizeof(bitvec_t *));
 
     // Allocate space for device copies of a, b, c
     cudaMalloc((void **)&vecd, size);
@@ -83,7 +83,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
         cudaMemcpy(vecd, vec, size, cudaMemcpyHostToDevice);
 
         cuda_xor<<<((i + 1) + THREADS_PER_BLOCK-1) / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd);
-        cudaMemcpy(ret_vec, ret_vecd, size * (i + 1), cudaMemcpyDeviceToHost);
+        //cudaMemcpy(ret_vec, ret_vecd, size * (i + 1), cudaMemcpyDeviceToHost);
 
         for (j = 0; j < i; ++j)
         {
@@ -100,9 +100,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
     }
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd);
-    free(vec);
-    //free(ret_vec);
-    //free(vecs);
+    free(vec); free(ret_vec); free(vecs);
 }
 
 int main() {
