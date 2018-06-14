@@ -27,17 +27,18 @@ typedef void(*callback_list_t)(output_t);
 
 __global__ void cuda_xor(uint32_t *vec_1, uint32_t *vecs, uint32_t *ret_vec)
 {
-    int vectorindex = threadIdx.x + blockIdx.x * blockDim.x;
-    int wordindex;
-    int vectorweight;
+    uint32_t vectorindex = threadIdx.x + blockIdx.x * blockDim.x;
+    uint32_t wordindex;
+    uint32_t vectorweight;
 
-    if (vectorindex < NW)
+    if (vectorindex < *vec_1)
     {
         vectorweight = 0;
         for (wordindex = 0; wordindex < NW; ++wordindex)
         {
             vectorweight += __popc(vecs[(*vec_1 * NW) + wordindex] ^ vecs[(vectorindex * NW) + wordindex]);
         }
+        ret_vec[vectorindex] = vectorweight;
     }
 }
 
@@ -65,7 +66,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
     vec = (uint32_t *)malloc(size);
     vecs = (bitvec_t *)malloc(size * L.size());
-    ret_vec = (uint32_t *)malloc(L.size());
+    ret_vec = (uint32_t *)malloc(L.size() * sizeof(uint32_t));
 
     memcpy(vecs, L.data(), sizeof(bitvec_t *));
 
@@ -83,7 +84,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
         cudaMemcpy(vecd, vec, size, cudaMemcpyHostToDevice);
 
         cuda_xor<<<((i + 1) + THREADS_PER_BLOCK-1) / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd);
-        //cudaMemcpy(ret_vec, ret_vecd, size * (i + 1), cudaMemcpyDeviceToHost);
+        cudaMemcpy(ret_vec, ret_vecd, size * (i + 1), cudaMemcpyDeviceToHost);
 
         for (j = 0; j < i; ++j)
         {
