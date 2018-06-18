@@ -7,7 +7,7 @@
 #include "./generate_data.cpp"
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-#define THREADS_PER_BLOCK 4 // Number of threads per block
+#define THREADS_PER_BLOCK 265 // Number of threads per block
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 using std::size_t;   // unsigned integer for indices
@@ -38,9 +38,8 @@ __global__ void nns_kernel(uint32_t *vec_1, uint32_t *vecs, uint32_t *ret_vec, u
 
 __host__ void clearlist(output_t output) {
     for (size_t i = 0; i < output.size(); i++) {
-        for (size_t j = 0; j < output[0].size(); j++) {
-            std::bitset<8> x(output[i][j]);
-        }
+        printf("%zu,", output[i][0]);
+        printf("%zu\n", output[i][1]);
     }
 }
 
@@ -59,7 +58,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     vec_size = (uint32_t *)malloc(sizeof(uint32_t));
 
     // Copy location of data in vector
-    memcpy(vecs, L.data(), sizeof(bitvec_t *));
+    memcpy(vecs, L.data(), L.size() * sizeof(bitvec_t));
 
     // Set vector size
     *vec_size = L[0].size();
@@ -78,7 +77,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
     size_t j;
 
-    for (size_t i = 0; i < L.size(); ++i)    {
+    for (size_t i = 0; i < L.size(); ++i) {
 
         // Set current bitvector index
         *vec = i;
@@ -106,7 +105,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
-
+        output.clear();
     }
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd); cudaFree(vecd_size);
     free(vec); free(ret_vec); free(vecs); free(ret_vec_zeroes); free(vec_size);
@@ -114,9 +113,9 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    size_t leng = 10;
+    size_t leng = 10000;
     generate_random_list(test, leng);
-    size_t t = 98291;
+    size_t t = 128;
 
     NSS(test, t, clearlist);
 
