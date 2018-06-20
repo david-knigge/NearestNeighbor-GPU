@@ -3,7 +3,7 @@ CPP					= g++
 
 CU_FLAGS 		= -O3 -std=c++11
 
-CU_SOURCES  = nns.cu 
+CU_SOURCES  = nns2.cu 
 
 CU_OBJECTS 	= $(CU_SOURCES:%.cu=%.o)
 
