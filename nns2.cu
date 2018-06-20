@@ -69,14 +69,14 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
             }
         }
         // periodically give outputlist back for further processing
-        f(output); // assume it empties output
+        output.clear(); // assume it empties output
 
     }
 }
 
 int main() {
     list_t test;
-    size_t leng = 5000;
+    size_t leng = 3750;
 
     // Clock for timing the function
     clock_t start;
@@ -84,7 +84,7 @@ int main() {
     start = clock();
 
     generate_random_list(test, leng);
-    size_t thersh = 98291;
+    size_t thersh = 110;
     //cout << leng, cout << ' ';
     NSS(test, thersh, printsomestuff);
 
