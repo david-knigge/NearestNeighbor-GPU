@@ -11,11 +11,11 @@
 #define NUMBER_OF_THREADS 1024
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
-using std::size_t;   // unsigned integer for indices
+// using std::size_t;   // unsigned integer for indices
 
 // type for bitvector
 typedef array<uint32_t, NW> bitvec_t;
-typedef array<size_t, 2> compound_t;
+typedef array<uint32_t, 2> compound_t;
 // type for lists of bitvectors
 typedef vector<bitvec_t> list_t;
 typedef vector<compound_t> output_t;
@@ -33,18 +33,18 @@ __global__ void nns_kernel(uint32_t *vec_id, uint32_t *vecs, uint32_t *ret_vec, 
         vectorweight += __popc(vecs[NW * j + k] ^ vecs[NW * *vec_id + k]);
       }
       // ret_vec = binary array (with 1 = hit, 0 = miss)
-      ret_vec[*vec_id * *l_size + j] = (vectorweight < *thres) * ;
+      ret_vec[*vec_id * *l_size + j] = (vectorweight < *thres) ;
     }
 }
 
 __host__ void clearlist(output_t output) {
-    for (size_t i = 0; i < output.size(); i++) {
+    for (uint32_t i = 0; i < output.size(); i++) {
         //printf("%zu,", output[i][0]);
         //printf("%zu\n", output[i][1]);
     }
 }
 
-void NSS(const list_t& L, size_t t, callback_list_t f)  {
+void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     output_t output;
     bitvec_t *vecs;
@@ -82,8 +82,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     // Store list size in device memory
     cudaMemcpy(l_sized, l_size, sizeof(uint32_t), cudaMemcpyHostToDevice);
 
-    size_t j;
-    size_t i;
+    uint32_t i,j;
     uint32_t iterations = L.size() - NUMBER_OF_THREADS;
     for (i = 0; i <iterations; i = i+NUMBER_OF_THREADS){
       // Initialize device memory to write found weights to
@@ -121,14 +120,14 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    size_t leng = 100000;
+    uint32_t leng = 100000;
 
     clock_t start;
     double duration;
     start = clock();
 
     generate_random_list(test, leng);
-    size_t t = 128;
+    uint32_t t = 128;
 
     NSS(test, t, clearlist);
 
