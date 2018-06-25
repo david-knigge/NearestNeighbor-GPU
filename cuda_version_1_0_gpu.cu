@@ -10,7 +10,7 @@
 // - zonder threshold op de gpu
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-#define THREADS_PER_BLOCK 265 // Number of threads per block
+#define THREADS_PER_BLOCK 256 // Number of threads per block
 
 int total_counter = 0;
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
@@ -66,14 +66,13 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     // go over all unique pairs 0 <= j < i < L.size()
     bitvec_t *vecs;
-    uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *ret_vec_zeroes;
+    uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec;
     //int size = L.size() * sizeof(bitvec_t);
     int size = sizeof(bitvec_t);
 
     vec = (uint32_t *)malloc(sizeof(uint32_t));
     vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * L.size());
     ret_vec = (uint32_t *)calloc(L.size(), sizeof(uint32_t));
-    ret_vec_zeroes = (uint32_t *)calloc(L.size(), sizeof(uint32_t));
 
     memcpy(vecs, L.data(), L.size() * sizeof(bitvec_t));
 
@@ -87,7 +86,6 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     uint32_t i,j;
 
     *vec = 1;
-    cudaMemcpy(ret_vecd, ret_vec_zeroes, L.size() * sizeof(uint32_t), cudaMemcpyHostToDevice);
     cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
     // run 1 kernel
     cuda_xor<<<1, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd);
@@ -96,7 +94,6 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     for (i = 1; i < L.size(); ++i)    {
 
         *vec = i;
-        cudaMemcpy(ret_vecd, ret_vec_zeroes, L.size() * sizeof(uint32_t), cudaMemcpyHostToDevice);
         cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
 
         cuda_xor<<<(i + THREADS_PER_BLOCK) / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd);
@@ -131,7 +128,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     f(output); // assume it empties output
     output.clear();
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd);
-    free(vec); free(ret_vec); free(vecs); free(ret_vec_zeroes);
+    free(vec); free(ret_vec); free(vecs);
 }
 
 int main() {

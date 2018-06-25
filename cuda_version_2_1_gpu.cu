@@ -7,8 +7,8 @@
 #include "./generate_data.cpp"
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-#define THREADS_PER_BLOCK 2 // Number of threads per block
-#define NUMBER_OF_THREADS 10
+#define THREADS_PER_BLOCK 256 // Number of threads per block
+#define NUMBER_OF_THREADS 2048
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 // using std::size_t;   // unsigned integer for indices
@@ -130,11 +130,9 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
                         callback_pair[1] = sec_vec;
                         output.emplace_back(callback_pair);
                     }
-
                 }
             }
         }
-
         // Empty output list
         f(output);
         output.clear();
@@ -157,7 +155,6 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
                     callback_pair[1] = sec_vec;
                     output.emplace_back(callback_pair);
                 }
-
             }
         }
     }
