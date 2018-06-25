@@ -34,11 +34,9 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs, uint32_t *ret
     {
         for (uint32_t j = 0; j < prim_vec; j++){
             vectorweight = 0;
-            // printf("ThreadID: %d prim_vec: %d sec_vec: %d\n",threadID, i, j);
             for (k = 0; k < *vector_size; k++){
                 vectorweight += __popc(vecs[*vector_size * prim_vec + k] ^ vecs[*vector_size * j + k]);
             }
-            // ret_vec = binary array (with 1 = hit, 0 = miss)
             ret_vec[thread_id * *l_size + j] = (vectorweight < *thres);
         }
     }
@@ -61,7 +59,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     // Initialize Host memory for vectors
     vec = (uint32_t *)malloc(sizeof(uint32_t));
     vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * L.size());
-    ret_vec = (uint32_t *)calloc(sizeof(uint32_t) * (L.size() *NUMBER_OF_THREADS), sizeof(uint32_t));
+    ret_vec = (uint32_t *)calloc(L.size() *NUMBER_OF_THREADS, sizeof(uint32_t));
     vec_size = (uint32_t *)malloc(sizeof(uint32_t));
     l_size = (uint32_t *)malloc(sizeof(uint32_t));
     thres = (uint32_t *)malloc(sizeof(uint32_t));
@@ -72,6 +70,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     // Set vector size
     *vec_size = L[0].size();
     *l_size = L.size();
+    *thres = t;
 
     // Allocate device memory for needed data
     cudaMalloc((void **)&vecd, sizeof(bitvec_t));
@@ -90,6 +89,8 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     // Store list size in device memory
     cudaMemcpy(l_sized, l_size, sizeof(uint32_t), cudaMemcpyHostToDevice);
 
+    cudaMemcpy(thresd, thres, sizeof(uint32_t), cudaMemcpyHostToDevice);
+
     // start first iteration at vector with index 1
     *vec = 1;
     cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
@@ -98,8 +99,9 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     cudaMemcpy(ret_vec, ret_vecd, *l_size * NUMBER_OF_THREADS * sizeof(uint32_t), cudaMemcpyDeviceToHost);
 
-    uint32_t i,j,k;
-    uint32_t iterations = *l_size - NUMBER_OF_THREADS;
+    uint32_t j,prim_vec, sec_vec;
+    int i;
+    int iterations = *l_size - NUMBER_OF_THREADS;
     for (i = 1 + NUMBER_OF_THREADS; i < iterations; i = i + NUMBER_OF_THREADS){
         // Initialize device memory to write found weights to
         *vec = i;
@@ -109,15 +111,20 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
         for (j = 0; j < NUMBER_OF_THREADS; j++)
         {
-            uint32_t ret_iterations = i + j;
-            for (k = 0; k < ret_iterations; k++) {
-                // check if hit or miss
-                if(ret_vec[j * l_size + k])
-                {
-                    compound_t callback_pair;
-                    callback_pair[0] = i + j;
-                    callback_pair[1] = k;
-                    output.emplace_back(callback_pair);
+            prim_vec = i - NUMBER_OF_THREADS + j;
+            if (prim_vec < *l_size)
+            {
+                for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
+                    // check if hit or miss
+                    printf("%d: %d\n",prim_vec, sec_vec);
+                    if(ret_vec[(prim_vec - 1) * *l_size + sec_vec])
+                    {
+                        compound_t callback_pair;
+                        callback_pair[0] = prim_vec;
+                        callback_pair[1] = sec_vec;
+                        output.emplace_back(callback_pair);
+                    }
+
                 }
             }
         }
@@ -130,7 +137,28 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
         cudaMemcpy(ret_vec, ret_vecd, *l_size * NUMBER_OF_THREADS * sizeof(uint32_t), cudaMemcpyDeviceToHost);
 
     }
+    for (j = 0; j < NUMBER_OF_THREADS; j++)
+    {
+        prim_vec = i - NUMBER_OF_THREADS + j;
+        if (prim_vec < *l_size)
+        {
+            for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
+                // check if hit or miss
+                if(ret_vec[(prim_vec - 1) * *l_size + sec_vec])
+                {
+                    compound_t callback_pair;
+                    callback_pair[0] = prim_vec;
+                    callback_pair[1] = sec_vec;
+                    output.emplace_back(callback_pair);
+                }
 
+            }
+        }
+    }
+
+    // Empty output list
+    f(output);
+    output.clear();
 
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd); cudaFree(vecd_size); cudaFree(l_sized);
     cudaFree(thresd);
