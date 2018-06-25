@@ -15,6 +15,8 @@
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 // using std::size_t;   // unsigned integer for indices
 
+int total_counter = 0;
+
 // type for bitvector
 typedef array<uint32_t, NW> bitvec_t;
 typedef array<uint32_t, 2> compound_t;
@@ -52,8 +54,9 @@ inline uint32_t hammingweight(uint32_t n) {
 
 void printsomestuff(output_t output) {
     for (uint32_t i = 0; i < output.size(); i++) {
-        // printf("%d,", output[i][0]);
-        // printf("%d\n", output[i][1]);
+        total_counter += 1;
+        //printf("%d,", output[i][0]);
+        //printf("%d\n", output[i][1]);
     }
     output.clear();
 }
@@ -105,13 +108,13 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
 
         nns_kernel<<<(i + THREADS_PER_BLOCK) / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd, l_sized, thresd);
 
-        for (j = 0; j < i - 1; j++){
-          if (ret_vec[j]) {
-            compound_t callback_pair;
-            callback_pair[0] = i;
-            callback_pair[1] = j;
-            output.emplace_back(callback_pair);
-          }
+        for (j = 0; j < i; j++){
+            if (ret_vec[j]) {
+                compound_t callback_pair;
+                callback_pair[0] = i;
+                callback_pair[1] = j;
+                output.emplace_back(callback_pair);
+            }
         }
 
         cudaMemcpy(ret_vec, ret_vecd, *l_size * sizeof(uint32_t), cudaMemcpyDeviceToHost);
@@ -121,13 +124,23 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
         output.clear();
 
     }
+    for (j = 0; j < i; j++){
+        if (ret_vec[j]) {
+            compound_t callback_pair;
+            callback_pair[0] = i;
+            callback_pair[1] = j;
+            output.emplace_back(callback_pair);
+        }
+    }
+    f(output); // assume it empties output
+    output.clear();
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd);
     free(vec); free(ret_vec); free(vecs); free(ret_vec_zeroes);
 }
 
 int main() {
     list_t test;
-    uint32_t leng = 10000;
+    uint32_t leng = 5000;
 
     clock_t start;
     double duration;
@@ -138,7 +151,7 @@ int main() {
     // threshold
     uint32_t *t;
     t = (uint32_t *)malloc(sizeof(uint32_t));
-    *t = 128;
+    *t = 110;
 
     cout << leng, cout << '\n';
 
@@ -146,7 +159,7 @@ int main() {
 
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
     cout<<"printf: "<< duration <<'\n';
-
+    cout<<total_counter << '\n';
     cout << "klaar\n";
     cout.flush();
     return 0;

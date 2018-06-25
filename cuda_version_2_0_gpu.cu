@@ -46,7 +46,6 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs, uint32_t *ret
 
 __host__ void clearlist(output_t output) {
     for (uint32_t i = 0; i < output.size(); i++) {
-        total_counter += 1;
         //printf("%zu,", output[i][0]);
         //printf("%zu\n", output[i][1]);
     }
@@ -62,21 +61,21 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     // Initialize Host memory for vectors
     vec = (uint32_t *)malloc(sizeof(uint32_t));
     vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * L.size());
-    ret_vec = (uint32_t *)malloc(sizeof(uint32_t) * (L.size() * L.size()));
+    ret_vec = (uint32_t *)malloc(L.size() * NUMBER_OF_THREADS * sizeof(uint32_t));
     vec_size = (uint32_t *)malloc(sizeof(uint32_t));
     l_size = (uint32_t *)malloc(sizeof(uint32_t));
-
-    // Copy location of data in vector
-    memcpy(vecs, L.data(), L.size() * sizeof(bitvec_t));
 
     // Set vector size
     *vec_size = L[0].size();
     *l_size = L.size();
 
+    // Copy location of data in vector
+    memcpy(vecs, L.data(), *l_size * sizeof(bitvec_t));
+
     // Allocate device memory for needed data
     cudaMalloc((void **)&vecd, sizeof(bitvec_t));
     cudaMalloc((void **)&vecsd, L.size() * sizeof(bitvec_t));
-    cudaMalloc((void **)&ret_vecd, L.size() * L.size() * L.size() * sizeof(uint32_t));
+    cudaMalloc((void **)&ret_vecd, *l_size * NUMBER_OF_THREADS * sizeof(uint32_t));
     cudaMalloc((void **)&vecd_size, sizeof(uint32_t));
     cudaMalloc((void **)&l_sized, sizeof(uint32_t));
 
@@ -99,7 +98,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     uint32_t j,prim_vec, sec_vec;
     int i;
-    int iterations = *l_size - NUMBER_OF_THREADS;
+    int iterations = *l_size;
     for (i = 1 + NUMBER_OF_THREADS; i < iterations; i = i + NUMBER_OF_THREADS){
         // Initialize device memory to write found weights to
         *vec = i;
@@ -114,8 +113,9 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
             {
                 for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
                     // check if hit or miss
-                    if(ret_vec[(prim_vec - 1) * *l_size + sec_vec] < t)
+                    if(ret_vec[j * *l_size + sec_vec] < t)
                     {
+                        total_counter += 1;
                         compound_t callback_pair;
                         callback_pair[0] = prim_vec;
                         callback_pair[1] = sec_vec;
@@ -141,8 +141,9 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
         {
             for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
                 // check if hit or miss
-                if(ret_vec[(prim_vec - 1) * *l_size + sec_vec] < t)
+                if(ret_vec[j * *l_size + sec_vec] < t)
                 {
+                    total_counter += 1;
                     compound_t callback_pair;
                     callback_pair[0] = prim_vec;
                     callback_pair[1] = sec_vec;

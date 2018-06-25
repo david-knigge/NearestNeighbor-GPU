@@ -30,7 +30,7 @@ void generate_random_list(list_t& output, uint32_t n) {
     // a true randomness source
     random_device rd;
     // obtain randomness seed, replace by a fixed value for deterministic tests
-    uint32_t seed = rd();
+    uint32_t seed = 10;
     // a fast pseudo-random generator
     // each mt() call returns a pseudo-random uint32_t value
     mt19937 mt(seed);

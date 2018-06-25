@@ -7,11 +7,13 @@
 #include "./generate_data.cpp"
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-#define THREADS_PER_BLOCK 256 // Number of threads per block
-#define NUMBER_OF_THREADS 1024
+#define THREADS_PER_BLOCK 2 // Number of threads per block
+#define NUMBER_OF_THREADS 10
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 // using std::size_t;   // unsigned integer for indices
+
+int total_counter = 0;
 
 // type for bitvector
 typedef array<uint32_t, NW> bitvec_t;
@@ -37,15 +39,19 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs, uint32_t *ret
             for (k = 0; k < *vector_size; k++){
                 vectorweight += __popc(vecs[*vector_size * prim_vec + k] ^ vecs[*vector_size * j + k]);
             }
+            // ret_vec = binary array (with 1 = hit, 0 = miss)
+            //printf("prim_vec: %d sec_vec: %d vecw:%d arrayid: %d\n", prim_vec, j, vectorweight, thread_id * *l_size + j);
             ret_vec[thread_id * *l_size + j] = (vectorweight < *thres);
+            //printf("%d, %d, thres: %d bool: %d\n", vectorweight, ret_vec[thread_id * *l_size + j], *thres, (vectorweight < *thres));
         }
     }
 }
 
 __host__ void clearlist(output_t output) {
     for (uint32_t i = 0; i < output.size(); i++) {
-        printf("%d,", output[i][0]);
-        printf("%d\n", output[i][1]);
+        total_counter += 1;
+        //printf("%d,", output[i][0]);
+        //printf("%d\n", output[i][1]);
     }
 }
 
@@ -101,7 +107,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     uint32_t j,prim_vec, sec_vec;
     int i;
-    int iterations = *l_size - NUMBER_OF_THREADS;
+    int iterations = *l_size;
     for (i = 1 + NUMBER_OF_THREADS; i < iterations; i = i + NUMBER_OF_THREADS){
         // Initialize device memory to write found weights to
         *vec = i;
@@ -116,8 +122,8 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
             {
                 for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
                     // check if hit or miss
-                    printf("%d: %d\n",prim_vec, sec_vec);
-                    if(ret_vec[(prim_vec - 1) * *l_size + sec_vec])
+                    //printf("%d: %d\n",prim_vec, sec_vec);
+                    if(ret_vec[j * *l_size + sec_vec])
                     {
                         compound_t callback_pair;
                         callback_pair[0] = prim_vec;
@@ -144,7 +150,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
         {
             for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
                 // check if hit or miss
-                if(ret_vec[(prim_vec - 1) * *l_size + sec_vec])
+                if(ret_vec[j * *l_size + sec_vec])
                 {
                     compound_t callback_pair;
                     callback_pair[0] = prim_vec;
@@ -167,14 +173,14 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    uint32_t leng = 10;
+    uint32_t leng = 100000;
 
     clock_t start;
     double duration;
     start = clock();
 
     generate_random_list(test, leng);
-    uint32_t t = 128;
+    uint32_t t = 110;
 
     NSS(test, t, clearlist);
 
@@ -182,6 +188,7 @@ int main() {
     cout<<"printf: "<< duration <<'\n';
 
     cout << leng << '\n';
+    cout << total_counter << '\n';
     cout.flush();
     return 0;
 }
