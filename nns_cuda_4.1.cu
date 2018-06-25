@@ -7,7 +7,8 @@
 #include "./generate_data.cpp"
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-#define THREADS_PER_BLOCK 265 // Number of threads per block
+#define THREADS_PER_BLOCK 256 // Number of threads per block
+#define NUMBER_OF_THREADS 1024
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 using std::size_t;   // unsigned integer for indices
@@ -22,17 +23,19 @@ typedef vector<compound_t> output_t;
 // type for any function that takes a list_t by reference
 typedef void(*callback_list_t)(output_t);
 
-__global__ void nns_kernel(uint32_t *vec_1, uint32_t *vecs, uint32_t *ret_vec, uint32_t *vector_size, uint32_t *l_size)
+__global__ void nns_kernel(uint32_t *vecs, uint32_t *ret_vec, uint32_t *vector_size, uint32_t *l_size)
 {
-    uint32_t wordindex = threadIdx.x + blockIdx.x * blockDim.x;
-    wordindex = wordindex  - ((*vec_1 * *vector_size) * (*vec_1 * (*vector_size < wordindex)));
-    uint32_t relWordIndex = wordindex % *vector_size;
-    uint32_t vectorindex = wordindex / *vector_size;
-    vectorindex = vectorindex - ((*l_size - *vec_1 + 1) * (*vec_1 * (*vector_size < wordindex)));
-
-    if (vectorindex < *l_size - *vec_1)
-    {
-        atomicAdd(ret_vec + vectorindex + (*vec_1 * (*vector_size < wordindex)), __popc(vecs[(*vec_1 * *vector_size) + relWordIndex] ^ vecs[wordindex]));
+    uint32_t threadID = threadIdx.x + blockIdx.x * blockDim.x;
+    // printf("%d\n", threadID);
+    for (uint32_t i = threadID; i < *l_size; i = i+NUMBER_OF_THREADS){
+      for (uint32_t j = 0; j<i; j++){
+        uint32_t vectorweight = 0;
+        // printf("ThreadID: %d prim_vec: %d sec_vec: %d\n",threadID, i, j);
+        for (uint32_t k = 0; k < NW; k++){
+          vectorweight += __popc(vecs[NW * j + k] ^ vecs[NW * i + k]);
+        }
+        ret_vec[i * *l_size + j] = vectorweight;
+      }
     }
 }
 
@@ -48,13 +51,12 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     output_t output;
     bitvec_t *vecs;
     uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *vec_size, *vecd_size,
-        *ret_vec_zeroes, *l_sized, *l_size;
+        *l_sized, *l_size;
 
     // Initialize Host memory for vectors
     vec = (uint32_t *)malloc(sizeof(uint32_t));
     vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * L.size());
-    ret_vec = (uint32_t *)malloc(sizeof(uint32_t) * (L.size() + 1));
-    ret_vec_zeroes = (uint32_t *)calloc(L.size() + 1, sizeof(uint32_t));
+    ret_vec = (uint32_t *)malloc(sizeof(uint32_t) * (L.size() * L.size()));
     vec_size = (uint32_t *)malloc(sizeof(uint32_t));
     l_size = (uint32_t *)malloc(sizeof(uint32_t));
 
@@ -68,7 +70,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     // Allocate device memory for needed data
     cudaMalloc((void **)&vecd, sizeof(bitvec_t));
     cudaMalloc((void **)&vecsd, L.size() * sizeof(bitvec_t));
-    cudaMalloc((void **)&ret_vecd, L.size() * sizeof(uint32_t));
+    cudaMalloc((void **)&ret_vecd, L.size() * L.size() * L.size() * sizeof(uint32_t));
     cudaMalloc((void **)&vecd_size, sizeof(uint32_t));
     cudaMalloc((void **)&l_sized, sizeof(uint32_t));
 
@@ -82,49 +84,51 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     cudaMemcpy(l_sized, l_size, sizeof(uint32_t), cudaMemcpyHostToDevice);
 
     size_t j;
+    size_t i;
 
-    uint32_t iterations = (L.size() + 1) / 2;
-    for (size_t i = 0; i < iterations; ++i) {
+    // Initialize device memory to write found weights to
+    nns_kernel<<< (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(vecsd, ret_vecd, vecd_size, l_sized);
 
-        // Set current bitvector index
-        *vec = i;
-        // Initialize device memory to contain id of current bitvector index
-        cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
+    // Launch kernel
+    // Retrieve found weights from GPU memory
+    cudaMemcpy(ret_vec, ret_vecd, L.size() * L.size() * sizeof(uint32_t), cudaMemcpyDeviceToHost);
 
-        // Initialize device memory to write found weights to
-        cudaMemcpy(ret_vecd, ret_vec_zeroes, L.size() * sizeof(uint32_t), cudaMemcpyHostToDevice);
-
-        // Launch kernel
-        nns_kernel<<<((L.size() * *vec_size) + THREADS_PER_BLOCK-1) / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd, vecd_size, l_sized);
-
-        // Retrieve found weights from GPU memory
-        cudaMemcpy(ret_vec, ret_vecd, L.size() * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-
-        for (j = 0; j < L.size(); ++j)
+    for (j = 0; j < L.size(); ++j)
+    {
+      for (i = 0; i < j; i++)
+      {
+        if (ret_vec[j * L.size() + i] < t)
         {
-            if (ret_vec[j] < t)
-            {
-                compound_t callback_pair;
-                callback_pair[0] = i;
-                callback_pair[1] = j;
-                output.emplace_back(callback_pair);
-            }
+            compound_t callback_pair;
+            callback_pair[0] = i;
+            callback_pair[1] = j;
+            output.emplace_back(callback_pair);
         }
-        // periodically give outputlist back for further processing
-        f(output); // assume it empties output
-        output.clear();
+      }
     }
+    // periodically give outputlist back for further processing
+    f(output); // assume it empties output
+    output.clear();
+
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd); cudaFree(vecd_size);
-    free(vec); free(ret_vec); free(vecs); free(ret_vec_zeroes); free(vec_size); free(l_size);
+    free(vec); free(ret_vec); free(vecs); free(vec_size); free(l_size);
 }
 
 int main() {
     list_t test;
-    size_t leng = 10000;
+    size_t leng = 1000;
+
+    clock_t start;
+    double duration;
+    start = clock();
+
     generate_random_list(test, leng);
     size_t t = 128;
 
     NSS(test, t, clearlist);
+
+    duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
+    cout<<"printf: "<< duration <<'\n';
 
     cout << leng << '\n';
     cout.flush();
