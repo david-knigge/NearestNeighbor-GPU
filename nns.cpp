@@ -68,7 +68,6 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
         }
         // periodically give outputlist back for further processing
         f(output); // assume it empties output
-
     }
 }
 
