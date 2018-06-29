@@ -10,10 +10,12 @@
 // - with thresholding on the GPU
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-#define THREADS_PER_BLOCK 265 // Number of threads per block
+#define THREADS_PER_BLOCK 256 // Number of threads per block
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 // using std::size_t;   // unsigned integer for indices
+
+int total_counter = 0;
 
 // type for bitvector
 typedef array<uint32_t, NW> bitvec_t;
@@ -54,8 +56,9 @@ __global__ void nns_kernel(uint32_t *vec_1, uint32_t *vecs, uint32_t *ret_vec,
 // Takes an output list and prints the indices per line
 void printsomestuff(output_t output) {
     for (uint32_t i = 0; i < output.size(); i++) {
-        // printf("%d,", output[i][0]);
-        // printf("%d\n", output[i][1]);
+        total_counter += 1;
+        //printf("%d,", output[i][0]);
+        //printf("%d\n", output[i][1]);
     }
     output.clear();
 }
@@ -67,10 +70,14 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
 
     // allocate space for all the variable pointers needed
     output_t output;
+
+    //
     bitvec_t *vecs;
-    uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *ret_vec_zeroes,
-        *l_sized, *l_size, *thresd;
+    uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *l_sized, *l_size,
+        *thresd, i, j;
     int size = sizeof(bitvec_t);
+
+    // set list size
     l_size = (uint32_t *)malloc(sizeof(uint32_t));
     *l_size = L.size();
 
@@ -78,7 +85,6 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
     vec = (uint32_t *)malloc(sizeof(uint32_t));
     vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * *l_size);
     ret_vec = (uint32_t *)calloc(*l_size , sizeof(uint32_t));
-    ret_vec_zeroes = (uint32_t *)calloc(*l_size, sizeof(uint32_t));
 
     memcpy(vecs, L.data(), *l_size * sizeof(bitvec_t));
 
@@ -94,11 +100,8 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
     cudaMemcpy(thresd, t, sizeof(uint32_t), cudaMemcpyHostToDevice);
     cudaMemcpy(l_sized, l_size, sizeof(uint32_t), cudaMemcpyHostToDevice);
 
-    // allocate space fo vector indices
-    uint32_t i,j;
-
     *vec = 1;
-    // move the values from the cpu to the gpu
+
     cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
     cudaMemcpy(ret_vecd, ret_vec_zeroes, *l_size * sizeof(uint32_t),
                 cudaMemcpyHostToDevice);
@@ -113,15 +116,12 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
 
         *vec = i;
         cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
-        cudaMemcpy(ret_vecd, ret_vec_zeroes, *l_size * sizeof(uint32_t),
-                    cudaMemcpyHostToDevice);
-
         // apply the cuda_xor function to all the up to i vectors
         nns_kernel<<<(i + THREADS_PER_BLOCK) / THREADS_PER_BLOCK,
                         THREADS_PER_BLOCK>>>
                         (vecd, vecsd, ret_vecd, l_sized, thresd);
 
-        for (j = 0; j < i - 1; j++) {
+        for (j = 0; j < i; j++) {
             if (ret_vec[j]) {
                 // create a compound term to add to the output list
                 compound_t callback_pair;
@@ -139,14 +139,25 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
         output.clear(); // clear the output
 
     }
-    // free the allocated memmory
-    cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd);
-    free(vec); free(ret_vec); free(vecs); free(ret_vec_zeroes);
+    for (j = 0; j < i; j++) {
+        if (ret_vec[j]) {
+            compound_t callback_pair;
+            callback_pair[0] = i;
+            callback_pair[1] = j;
+            output.emplace_back(callback_pair);
+        }
+    }
+    f(output); // assume it empties output
+    output.clear();
+
+    cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd);cudaFree(thresd);
+    cudaFree(l_sized);
+    free(vec); free(ret_vec); free(vecs);
 }
 
 int main() {
     list_t test;
-    uint32_t leng = 10000;
+    uint32_t leng = 5000;
 
     clock_t start;
     double duration;
@@ -157,7 +168,7 @@ int main() {
     // threshold
     uint32_t *t;
     t = (uint32_t *)malloc(sizeof(uint32_t));
-    *t = 128;
+    *t = 110;
 
     cout << leng, cout << '\n';
 
@@ -165,7 +176,7 @@ int main() {
 
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
     cout<<"printf: "<< duration <<'\n';
-
+    cout<<total_counter << '\n';
     cout << "klaar\n";
     cout.flush();
     return 0;

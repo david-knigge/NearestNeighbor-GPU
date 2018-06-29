@@ -10,8 +10,9 @@
 // - zonder threshold op de gpu
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-#define THREADS_PER_BLOCK 265 // Number of threads per block
+#define THREADS_PER_BLOCK 256 // Number of threads per block
 
+int total_counter = 0;
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 // using std::size_t;   // unsigned integer for indices
 
@@ -55,8 +56,9 @@ __global__ void cuda_xor(uint32_t *vec_1, uint32_t *vecs, uint32_t *ret_vec) {
 // Takes an output list and prints the indices per line
 void print_output(output_t output) {
     for (uint32_t i = 0; i < output.size(); i++) {
-        // printf("%d,", output[i][0]);
-        // printf("%d\n", output[i][1]);
+        total_counter += 1;
+        //printf("%d,", output[i][0]);
+        //printf("%d\n", output[i][1]);
     }
     output.clear();
 }
@@ -70,7 +72,8 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     // allocate space for all the variable pointers needed
     bitvec_t *vecs;
-    uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *ret_vec_zeroes;
+    uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec;
+    //int size = L.size() * sizeof(bitvec_t);
     int size = sizeof(bitvec_t);
     l_size = (uint32_t *)malloc(sizeof(uint32_t));
     *l_size = L.size();
@@ -78,9 +81,8 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     // allocate space for all the actual values
     vec = (uint32_t *)malloc(sizeof(uint32_t));
-    vecs = (bitvec_t *)malloc(size * *l_size);
-    ret_vec = (uint32_t *)calloc(*l_size , sizeof(uint32_t));
-    ret_vec_zeroes = (uint32_t *)calloc(*l_size, sizeof(uint32_t));
+    vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * L.size());
+    ret_vec = (uint32_t *)calloc(L.size(), sizeof(uint32_t));
 
     memcpy(vecs, L.data(), *l_size * size);
 
@@ -95,7 +97,6 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     uint32_t i,j;
 
     *vec = 1;
-    // move the values from the cpu to the gpu
     cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
     cudaMemcpy(ret_vecd, ret_vec_zeroes, L.size() * sizeof(uint32_t),
                 cudaMemcpyHostToDevice);
@@ -116,7 +117,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
         cuda_xor<<<(i + THREADS_PER_BLOCK) / THREADS_PER_BLOCK,
                     THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd);
 
-        for (j = 0; j < i-1; j++) {
+        for (j = 0; j < i - 1; j++) {
             if (ret_vec[j] < t) {
                 // create a compound term to add to the output list
                 compound_t callback_pair;
@@ -134,14 +135,34 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
         output.clear(); // clear the output
 
     }
+
+    for (j = 0; j < NUMBER_OF_THREADS; j++) {
+        prim_vec = i - NUMBER_OF_THREADS + j;
+
+        if (prim_vec < *l_size) {
+            for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
+                // check if hit or miss
+                if(ret_vec[j * *l_size + sec_vec]) {
+                    compound_t callback_pair;
+                    callback_pair[0] = prim_vec;
+                    callback_pair[1] = sec_vec;
+                    output.emplace_back(callback_pair);
+                }
+            }
+        }
+    }
+
+    // Empty output list
+    f(output);
+    output.clear();
     // free the allocated memmory
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd);
-    free(vec); free(ret_vec); free(vecs); free(ret_vec_zeroes);
+    free(vec); free(ret_vec); free(vecs);
 }
 
 int main() {
     list_t test;
-    uint32_t leng = 10000;
+    uint32_t leng = 5000;
 
     clock_t start;
     double duration;
@@ -155,7 +176,7 @@ int main() {
 
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
     cout<<"printf: "<< duration <<'\n';
-
+    cout<<total_counter << '\n';
     cout << "klaar\n";
     cout.flush();
     return 0;
