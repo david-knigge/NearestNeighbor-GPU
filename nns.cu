@@ -8,6 +8,10 @@
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 
+int comparisons, under_thresh;
+comparisons = 0;
+under_thresh = 0;
+
 using namespace std;
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
@@ -39,6 +43,7 @@ void printsomestuff(output_t output) {
             std::bitset<8> x(output[i][j]);
             cout << x, cout << ' ';
         }
+        under_thresh++;
          cout << '\n';
     }
 }
@@ -50,6 +55,7 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
     // go over all unique pairs 0 <= j < i < L.size()
     for (size_t i = 0; i < L.size(); ++i)    {
         for (size_t j = 0; j < i; ++j)    {
+            comparisons++;
             // compute hamming weight of (L[i] ^ L[j])
             size_t w = 0;
             for (size_t k = 0; k < NW; ++k) {
@@ -75,9 +81,9 @@ void NSS(const list_t& L, size_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    size_t leng = 2;
+    size_t leng = 5000;
     generate_random_list(test, leng);
-    size_t thersh = 98291;
+    size_t thersh = 110;
     cout << leng, cout << ' ';
     NSS(test, thersh, printsomestuff);
     cout << "klaar";

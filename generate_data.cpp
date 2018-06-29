@@ -31,7 +31,7 @@ void generate_random_list(list_t& output, uint32_t n) {
     uint32_t seed = rd();
     // a fast pseudo-random generator
     // each mt() call returns a pseudo-random uint32_t value
-    mt19937 mt(seed);
+    mt19937 mt(10);
     // resize output to hold n elements
     output.resize(n);
     // set random value for each element
