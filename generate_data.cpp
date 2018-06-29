@@ -17,11 +17,9 @@ typedef array<uint32_t, 2> compound_t;
 // type for lists of bitvectors
 typedef vector<bitvec_t> list_t;
 typedef vector<compound_t> output_t;
-
 // type for any function that takes 2 indices
 typedef void(*callback_pair_t)(uint32_t, uint32_t);
 // type for any function that takes a list_t by reference
-
 typedef void(*callback_list_t)(output_t);
 
 
@@ -33,7 +31,7 @@ void generate_random_list(list_t& output, uint32_t n) {
     uint32_t seed = 10;
     // a fast pseudo-random generator
     // each mt() call returns a pseudo-random uint32_t value
-    mt19937 mt(seed);
+    mt19937 mt(10);
     // resize output to hold n elements
     output.resize(n);
     // set random value for each element

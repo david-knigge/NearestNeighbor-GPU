@@ -7,7 +7,7 @@
 #include "./generate_data.cpp"
 
 // VERSIE 1.2:
-// - met threshold op de gpu
+// - with thresholding on the GPU
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 #define THREADS_PER_BLOCK 256 // Number of threads per block
@@ -24,34 +24,36 @@ typedef array<uint32_t, 2> compound_t;
 typedef vector<bitvec_t> list_t;
 typedef vector<compound_t> output_t;
 
-// type for any function that takes 2 indices
-// typedef void(*callback_pair_t)(size_t, size_t);
 // type for any function that takes a list_t by reference
-
 typedef void(*callback_list_t)(output_t);
 
-__global__ void nns_kernel(uint32_t *vec_1, uint32_t *vecs, uint32_t *ret_vec, uint32_t *size, uint32_t *thres)
-{
+// takes in two pointers to the address of two bitvec_t's and a third pointer to
+// where the results need to go
+__global__ void nns_kernel(uint32_t *vec_1, uint32_t *vecs, uint32_t *ret_vec,
+                            uint32_t *size, uint32_t *thres) {
+
+    // compute which vector the thread has to do the xor operation on
     uint32_t vectorindex = threadIdx.x + blockIdx.x * blockDim.x;
     uint32_t wordindex;
+    // the variable in which the amount of ones after the xor are added
     uint32_t vectorweight;
 
-    if (vectorindex < *vec_1)
-    {
+    // make sure the vectorindex is within the amount of vectors
+    if (vectorindex < *vec_1) {
         vectorweight = 0;
-        for (wordindex = 0; wordindex < NW; ++wordindex)
-        {
-            vectorweight += __popc(vecs[(*vec_1 * NW) + wordindex] ^ vecs[(vectorindex * NW) + wordindex]);
+
+        // for each word in the vector do the xor operation with the
+        // corresponding word of the other vector and count the ones with popc
+        for (wordindex = 0; wordindex < NW; ++wordindex) {
+            vectorweight += __popc(vecs[(*vec_1 * NW) + wordindex] ^
+                                    vecs[(vectorindex * NW) + wordindex]);
         }
-        // ret_vec[vectorindex] = *vec_1;
+        // thresholding the weight on the gpu
         ret_vec[vectorindex] = (vectorweight < *thres);
     }
 }
 
-inline uint32_t hammingweight(uint32_t n) {
-   return __builtin_popcount(n);
-}
-
+// Takes an output list and prints the indices per line
 void printsomestuff(output_t output) {
     for (uint32_t i = 0; i < output.size(); i++) {
         total_counter += 1;
@@ -61,19 +63,25 @@ void printsomestuff(output_t output) {
     output.clear();
 }
 
+// takes in a reference to vector full of bitvec_t, an uint32 for the threshold
+// and a function for handling the output compares all the vectors in L and does
+//  Nearest neighbour search.
 void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
 
+    // allocate space for all the variable pointers needed
     output_t output;
 
     //
     bitvec_t *vecs;
-    uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *l_sized, *l_size, *thresd, i, j;
+    uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *l_sized, *l_size,
+        *thresd, i, j;
     int size = sizeof(bitvec_t);
 
     // set list size
     l_size = (uint32_t *)malloc(sizeof(uint32_t));
     *l_size = L.size();
 
+    // allocate space for all the actual values
     vec = (uint32_t *)malloc(sizeof(uint32_t));
     vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * *l_size);
     ret_vec = (uint32_t *)calloc(*l_size , sizeof(uint32_t));
@@ -95,34 +103,43 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
     *vec = 1;
 
     cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
+    cudaMemcpy(ret_vecd, ret_vec_zeroes, *l_size * sizeof(uint32_t),
+                cudaMemcpyHostToDevice);
     // run 1 kernel
-    nns_kernel<<<1, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd, l_sized, thresd);
-    cudaMemcpy(ret_vec, ret_vecd, *l_size * sizeof(uint32_t), cudaMemcpyDeviceToHost);
+    nns_kernel<<<1, THREADS_PER_BLOCK>>>
+                (vecd, vecsd, ret_vecd, l_sized, thresd);
+    // collect the results by copying from the gpu back to the cpu
+    cudaMemcpy(ret_vec, ret_vecd, *l_size * sizeof(uint32_t),
+                cudaMemcpyDeviceToHost);
 
-    for (i = 1; i < *l_size; ++i)    {
+    for (i = 1; i < *l_size; ++i) {
 
         *vec = i;
         cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
+        // apply the cuda_xor function to all the up to i vectors
+        nns_kernel<<<(i + THREADS_PER_BLOCK) / THREADS_PER_BLOCK,
+                        THREADS_PER_BLOCK>>>
+                        (vecd, vecsd, ret_vecd, l_sized, thresd);
 
-        nns_kernel<<<(i + THREADS_PER_BLOCK) / THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd, l_sized, thresd);
-
-        for (j = 0; j < i; j++){
+        for (j = 0; j < i; j++) {
             if (ret_vec[j]) {
+                // create a compound term to add to the output list
                 compound_t callback_pair;
                 callback_pair[0] = i;
                 callback_pair[1] = j;
                 output.emplace_back(callback_pair);
             }
         }
-
-        cudaMemcpy(ret_vec, ret_vecd, *l_size * sizeof(uint32_t), cudaMemcpyDeviceToHost);
+        // collect the results by copying from the gpu back to the cpu
+        cudaMemcpy(ret_vec, ret_vecd, *l_size * sizeof(uint32_t),
+                    cudaMemcpyDeviceToHost);
 
         // periodically give outputlist back for further processing
-        f(output); // assume it empties output
-        output.clear();
+        f(output);
+        output.clear(); // clear the output
 
     }
-    for (j = 0; j < i; j++){
+    for (j = 0; j < i; j++) {
         if (ret_vec[j]) {
             compound_t callback_pair;
             callback_pair[0] = i;
@@ -132,7 +149,9 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
     }
     f(output); // assume it empties output
     output.clear();
-    cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd);cudaFree(thresd);cudaFree(l_sized);
+
+    cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd);cudaFree(thresd);
+    cudaFree(l_sized);
     free(vec); free(ret_vec); free(vecs);
 }
 
