@@ -25,7 +25,7 @@ typedef vector<bitvec_t> list_t;
 typedef vector<compound_t> output_t;
 
 // type for any function that takes a list_t by reference
-typedef void(*callback_list_t)(output_t);
+typedef void(*callback_list_t)(output_t *);
 
 // takes in two pointers to the address of two bitvec_t's and a third pointer to
 // where the results need to go
@@ -54,13 +54,13 @@ __global__ void nns_kernel(uint32_t *vec_1, uint32_t *vecs, uint32_t *ret_vec,
 }
 
 // Takes an output list and prints the indices per line
-void printsomestuff(output_t output) {
-    for (uint32_t i = 0; i < output.size(); i++) {
+void printsomestuff(output_t *output) {
+    for (uint32_t i = 0; i < (*output).size(); i++) {
         total_counter += 1;
-        //printf("%d,", output[i][0]);
-        //printf("%d\n", output[i][1]);
+        //printf("1: %d  ", output[i][0]);
+        //printf("2: %d\n", output[i][1]);
     }
-    output.clear();
+    (*output).clear();
 }
 
 // takes in a reference to vector full of bitvec_t, an uint32 for the threshold
@@ -103,8 +103,6 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
     *vec = 1;
 
     cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
-    cudaMemcpy(ret_vecd, ret_vec_zeroes, *l_size * sizeof(uint32_t),
-                cudaMemcpyHostToDevice);
     // run 1 kernel
     nns_kernel<<<1, THREADS_PER_BLOCK>>>
                 (vecd, vecsd, ret_vecd, l_sized, thresd);
@@ -135,8 +133,7 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
                     cudaMemcpyDeviceToHost);
 
         // periodically give outputlist back for further processing
-        f(output);
-        output.clear(); // clear the output
+        f(&output);
 
     }
     for (j = 0; j < i; j++) {
@@ -147,8 +144,7 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
             output.emplace_back(callback_pair);
         }
     }
-    f(output); // assume it empties output
-    output.clear();
+    f(&output); // assume it empties output
 
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd);cudaFree(thresd);
     cudaFree(l_sized);

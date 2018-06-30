@@ -7,7 +7,7 @@
 #include "./generate_data.cpp"
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-#define THREADS_PER_BLOCK 256 // Number of threads per block
+#define THREADS_PER_BLOCK 512 // Number of threads per block
 #define NUMBER_OF_THREADS 2048
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
@@ -23,7 +23,7 @@ typedef vector<bitvec_t> list_t;
 typedef vector<compound_t> output_t;
 
 // type for any function that takes a list_t by reference
-typedef void(*callback_list_t)(output_t);
+typedef void(*callback_list_t)(output_t *);
 
 // takes in two pointers to the address of two bitvec_t's and a third pointer to
 // where the results need to go
@@ -57,13 +57,13 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs,
 }
 
 // Takes an output list and prints the indices per line
-__host__ void print_output(output_t output) {
-    for (uint32_t i = 0; i < output.size(); i++) {
-        //printf("%d,", output[i][0]);
-        //printf("%d\n", output[i][1]);
+__host__ void print_output(output_t *output) {
+    for (uint32_t i = 0; i < (*output).size(); i++) {
         total_counter += 1;
+        //printf("1: %d  ", output[i][0]);
+        //printf("2: %d\n", output[i][1]);
     }
-    output.clear();
+    (*output).clear();
 }
 
 // takes in a reference to vector full of bitvec_t, an uint32 for the threshold
@@ -153,8 +153,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
             }
         }
         // Empty output list
-        f(output);
-        output.clear();
+        f(&output);
 
         // Retrieve found weights from GPU memory
         cudaMemcpy(ret_vec, ret_vecd,
@@ -180,8 +179,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     }
 
     // Empty output list
-    f(output);
-    output.clear();
+    f(&output);
 
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd); cudaFree(vecd_size);
     cudaFree(l_sized); cudaFree(thresd);
@@ -191,7 +189,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    uint32_t leng = 10000;
+    uint32_t leng = 5000;
 
     clock_t start;
     double duration;
