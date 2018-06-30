@@ -59,8 +59,9 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs,
 // Takes an output list and prints the indices per line
 __host__ void print_output(output_t output) {
     for (uint32_t i = 0; i < output.size(); i++) {
-        // printf("%d,", output[i][0]);
-        // printf("%d\n", output[i][1]);
+        //printf("%d,", output[i][0]);
+        //printf("%d\n", output[i][1]);
+        total_counter += 1;
     }
     output.clear();
 }
@@ -74,17 +75,18 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     output_t output;
     bitvec_t *vecs;
     uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *vec_size, *vecd_size,
-        *l_sized, *l_size, *thres, *thresd;
-    int size = sizeof(bitvec_t);
+        *l_sized, *l_size, *thres, *thresd, n_blocks, n_threads;
+
+    n_blocks = (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    n_threads = n_blocks * THREADS_PER_BLOCK;
     l_size = (uint32_t *)malloc(sizeof(uint32_t));
     *l_size = L.size();
 
     // Initialize Host memory for vectors
     vec = (uint32_t *)malloc(sizeof(uint32_t));
     vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * *l_size);
-    ret_vec = (uint32_t *)calloc(*l_size *NUMBER_OF_THREADS, sizeof(uint32_t));
+    ret_vec = (uint32_t *)calloc(*l_size *n_threads, sizeof(uint32_t));
     vec_size = (uint32_t *)malloc(sizeof(uint32_t));
-    l_size = (uint32_t *)malloc(sizeof(uint32_t));
     thres = (uint32_t *)malloc(sizeof(uint32_t));
 
     // Copy location of data in vector
@@ -92,7 +94,6 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     // Set vector size
     *vec_size = L[0].size();
-    *l_size = L.size();
     *thres = t;
 
     // Allocate device memory for needed data
@@ -102,7 +103,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     cudaMalloc((void **)&l_sized, sizeof(uint32_t));
     cudaMalloc((void **)&thresd, sizeof(uint32_t));
     cudaMalloc((void **)&ret_vecd,
-                *l_size * NUMBER_OF_THREADS * sizeof(uint32_t));
+                *l_size * n_threads * sizeof(uint32_t));
 
     // Store L in device memory
     cudaMemcpy(vecsd, vecs, *l_size * sizeof(bitvec_t), cudaMemcpyHostToDevice);
@@ -119,28 +120,25 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     *vec = 1;
     cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
 
-    nns_kernel<<< (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) /
-                    THREADS_PER_BLOCK, THREADS_PER_BLOCK>>>
+    nns_kernel<<< n_blocks, THREADS_PER_BLOCK>>>
                     (vecd, vecsd, ret_vecd, vecd_size, l_sized, thresd);
 
     cudaMemcpy(ret_vec, ret_vecd,
-                *l_size * NUMBER_OF_THREADS * sizeof(uint32_t),
+                *l_size * n_threads * sizeof(uint32_t),
                 cudaMemcpyDeviceToHost);
 
     uint32_t j,prim_vec, sec_vec;
     int i;
-    int iterations = *l_size;
-    for (i = 1 + NUMBER_OF_THREADS; i < iterations; i = i + NUMBER_OF_THREADS) {
+    for (i = 1 + n_threads; i < *l_size; i = i + n_threads) {
         // Initialize device memory to write found weights to
         *vec = i;
 
         cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
-        nns_kernel<<< (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) /
-                        THREADS_PER_BLOCK, THREADS_PER_BLOCK >>>
+        nns_kernel<<< n_blocks, THREADS_PER_BLOCK >>>
                         (vecd, vecsd, ret_vecd, vecd_size, l_sized, thresd);
 
-        for (j = 0; j < NUMBER_OF_THREADS; j++) {
-            prim_vec = i - NUMBER_OF_THREADS + j;
+        for (j = 0; j < n_threads; j++) {
+            prim_vec = i - n_threads + j;
 
             if (prim_vec < *l_size) {
                 for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
@@ -160,13 +158,13 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
         // Retrieve found weights from GPU memory
         cudaMemcpy(ret_vec, ret_vecd,
-                    *l_size * NUMBER_OF_THREADS * sizeof(uint32_t),
+                    *l_size * n_threads * sizeof(uint32_t),
                     cudaMemcpyDeviceToHost);
 
     }
 
-    for (j = 0; j < NUMBER_OF_THREADS; j++) {
-        prim_vec = i - NUMBER_OF_THREADS + j;
+    for (j = 0; j < n_threads; j++) {
+        prim_vec = i - n_threads + j;
 
         if (prim_vec < *l_size) {
             for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
@@ -193,7 +191,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    uint32_t leng = 100000;
+    uint32_t leng = 10000;
 
     clock_t start;
     double duration;
@@ -208,7 +206,7 @@ int main() {
     cout<<"printf: "<< duration <<'\n';
 
     cout << leng << '\n';
-    cout << total_counter << '\n';
+    printf("total pairs:%d\n", total_counter);
     cout.flush();
     return 0;
 }

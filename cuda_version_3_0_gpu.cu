@@ -35,6 +35,7 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs, uint32_t *ret
 
     if (threadIdx.x == 0) {
         o_size_block = 0;
+        o_size[blockIdx.x] = 0;
     }
     __syncthreads();
 
@@ -46,14 +47,12 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs, uint32_t *ret
                 vectorweight += __popc(vecs[*vector_size * prim_vec + k] ^ vecs[*vector_size * sec_vec + k]);
             }
             // ret_vec = binary array (with 1 = hit, 0 = miss)
-            //printf("prim_vec: %d sec_vec: %d vecw:%d arrayid: %d\n", prim_vec, j, vectorweight, thread_id * *l_size + j);
             if (vectorweight < *thres){
                 output_index = atomicAdd(&o_size_block, 1);
                 ret_vec[blockIdx.x * THREADS_PER_BLOCK * *l_size + (output_index * 2)] = prim_vec;
                 ret_vec[blockIdx.x * THREADS_PER_BLOCK * *l_size+ (output_index * 2) + 1] = sec_vec;
-                o_size[blockIdx.x] = output_index;
+                o_size[blockIdx.x] = output_index + 1;
             }
-            //printf("%d, %d, thres: %d bool: %d\n", vectorweight, ret_vec[thread_id * *l_size + j], *thres, (vectorweight < *thres));
         }
     }
 }
@@ -61,8 +60,8 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs, uint32_t *ret
 __host__ void clearlist(output_t output) {
     for (uint32_t i = 0; i < output.size(); i++) {
         total_counter += 1;
-        //printf("%d,", output[i][0]);
-        //printf("%d\n", output[i][1]);
+        //printf("1: %d  ", output[i][0]);
+        //printf("2: %d\n", output[i][1]);
     }
 }
 
@@ -71,8 +70,9 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     output_t output;
     bitvec_t *vecs;
     uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *vec_size, *vecd_size,
-        *l_sized, *l_size, *thres, *thresd, *o_size, *o_sized, n_blocks;
+        *l_sized, *l_size, *thres, *thresd, *o_size, *o_sized, n_blocks, n_threads;
     n_blocks = (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    n_threads = n_blocks * THREADS_PER_BLOCK;
 
     // Initialize Host memory for vectors
     vec = (uint32_t *)malloc(sizeof(uint32_t));
@@ -117,13 +117,12 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     nns_kernel<<< n_blocks, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd, vecd_size, l_sized, thresd, o_sized);
 
-    cudaMemcpy(ret_vec, ret_vecd, 2 * L.size() * (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) * sizeof(uint32_t), cudaMemcpyDeviceToHost);
+    cudaMemcpy(ret_vec, ret_vecd, 2 * *l_size * (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) * sizeof(uint32_t), cudaMemcpyDeviceToHost);
     cudaMemcpy(o_size, o_sized, n_blocks * sizeof(uint32_t), cudaMemcpyDeviceToHost);
 
     uint32_t j, n_pairs, total_n_pairs, output_back;
     int i;
-    int iterations = *l_size;
-    for (i = 1 + NUMBER_OF_THREADS; i < iterations; i = i + NUMBER_OF_THREADS) {
+    for (i = 1 + n_threads; i < *l_size; i = i + n_threads) {
         // Initialize device memory to write found weights to
         *vec = i;
 
@@ -140,14 +139,14 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
         for (j = 0; j < n_blocks; j++)
         {
             n_pairs = o_size[j];
-            memcpy(&output[output_back], ret_vec + (j * THREADS_PER_BLOCK * *l_size), n_pairs);
+            memcpy(&output[output_back], ret_vec + (j * THREADS_PER_BLOCK * *l_size), n_pairs * 2 * sizeof(uint32_t));
         }
         // Empty output list
         f(output);
         output.clear();
 
         // Retrieve found weights from GPU memory
-        cudaMemcpy(ret_vec, ret_vecd, 2 * L.size() * (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) * sizeof(uint32_t), cudaMemcpyDeviceToHost);
+        cudaMemcpy(ret_vec, ret_vecd, 2 * *l_size * (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) * sizeof(uint32_t), cudaMemcpyDeviceToHost);
         cudaMemcpy(o_size, o_sized, n_blocks * sizeof(uint32_t), cudaMemcpyDeviceToHost);
     }
 
@@ -157,13 +156,11 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
         total_n_pairs += o_size[j];
     }
     output_back = output.size();
-    printf("%u\n", total_n_pairs);
-    printf("%u\n", output_back);
     output.resize(output.size() + total_n_pairs);
     for (j = 0; j < n_blocks; j++)
     {
         n_pairs = o_size[j];
-        memcpy(&output[output_back], ret_vec + (j * THREADS_PER_BLOCK * *l_size), n_pairs);
+        memcpy(&output[output_back], ret_vec + (j * THREADS_PER_BLOCK * *l_size), n_pairs * 2 * sizeof(uint32_t));
     }
     // Empty output list
     f(output);
@@ -177,7 +174,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
 int main() {
     list_t test;
-    uint32_t leng = 100000;
+    uint32_t leng = 10000;
 
     clock_t start;
     double duration;
