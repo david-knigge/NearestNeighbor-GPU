@@ -189,7 +189,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f) {
 
 int main() {
     list_t test;
-    uint32_t leng = 100000;
+    uint32_t leng = 5000;
 
     // starting the timer
     clock_t start;

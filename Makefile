@@ -21,22 +21,22 @@ CU_OBJECTS_3_0 	= $(CU_SOURCES_3_0:%.cu=%.o)
 # %.o:			%.cpp
 # 				$(CPP) $(CPP_FLAGS) -c $< -o $@
 
-all: 			nns10 nns11 nns20 nns21 nns30
+all: 			nns_gpu_version_1_0 nns_gpu_version_1_1 nns_gpu_version_2_0 nns_gpu_version_2_1 nns_gpu_version_3_0
 
-nns10:		$(CU_OBJECTS_1_0)
+nns_gpu_version_1_0:		$(CU_OBJECTS_1_0)
 					$(NVCC) $^ -o $@
 
-nns11:		$(CU_OBJECTS_1_1)
+nns_gpu_version_1_1:		$(CU_OBJECTS_1_1)
 					$(NVCC) $^ -o $@
 
-nns20: 		$(CU_OBJECTS_2_0)
+nns_gpu_version_2_0: 		$(CU_OBJECTS_2_0)
 					$(NVCC) $^ -o $@
 
-nns21:		$(CU_OBJECTS_2_1)
+nns_gpu_version_2_1:		$(CU_OBJECTS_2_1)
 					$(NVCC) $^ -o $@
 
-nns30:		$(CU_OBJECTS_3_0)
+nns_gpu_version_3_0:		$(CU_OBJECTS_3_0)
 					$(NVCC) $^ -o $@
 
 clean:
-					rm -f *.o nns10 nns11 nns20 nns21 nns30 *~
+					rm -f *.o nns_gpu_version_1_0 nns_gpu_version_1_1 nns_gpu_version_2_0 nns_gpu_version_2_1 nns_gpu_version_3_0 *~
