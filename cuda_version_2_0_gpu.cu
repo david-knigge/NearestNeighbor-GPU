@@ -205,10 +205,8 @@ int main() {
 
     // end the timer
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout<<"printf: "<< duration <<'\n';
-
-    cout << leng << '\n';
+    cout<<"execution duration: "<< duration <<'\n';
+    cout<<"total pairs: " << total_counter << '\n';
     cout.flush();
-    printf("total pairs:%d\n", total_counter);
     return 0;
 }

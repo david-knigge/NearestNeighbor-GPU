@@ -72,7 +72,7 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs,
 }
 
 // Takes an output list and prints the indices per line
-__host__ void clearlist(output_t *output) {
+__host__ void print_output(output_t *output) {
     for (uint32_t i = 0; i < (*output).size(); i++) {
         total_counter += 1;
         //printf("1: %d  ", output[i][0]);
@@ -208,20 +208,22 @@ int main() {
     list_t test;
     uint32_t leng = 5000;
 
+    // starting the timer
     clock_t start;
     double duration;
     start = clock();
 
+    // generating the dataset
     generate_random_list(test, leng);
+    // setting the threshold
     uint32_t t = 110;
 
-    NSS(test, t, clearlist);
+    NSS(test, t, print_output);
 
+    // end the timer
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout<<"printf: "<< duration <<'\n';
-
-    cout << leng << '\n';
-    cout << total_counter << '\n';
+    cout<<"execution duration: "<< duration <<'\n';
+    cout<<"total pairs: " << total_counter << '\n';
     cout.flush();
     return 0;
 }

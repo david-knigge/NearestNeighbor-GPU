@@ -191,20 +191,22 @@ int main() {
     list_t test;
     uint32_t leng = 5000;
 
+    // starting the timer
     clock_t start;
     double duration;
     start = clock();
 
+    // generating the dataset
     generate_random_list(test, leng);
+    // setting the threshold
     uint32_t t = 110;
 
     NSS(test, t, print_output);
 
+    // end the timer
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout<<"printf: "<< duration <<'\n';
-
-    cout << leng << '\n';
-    printf("total pairs:%d\n", total_counter);
+    cout<<"execution duration: "<< duration <<'\n';
+    cout<<"total pairs: " << total_counter << '\n';
     cout.flush();
     return 0;
 }

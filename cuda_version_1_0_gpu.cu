@@ -153,20 +153,22 @@ int main() {
     list_t test;
     uint32_t leng = 5000;
 
+    // starting the timer
     clock_t start;
     double duration;
     start = clock();
 
+    // generating the dataset
     generate_random_list(test, leng);
-    uint32_t thersh = 110;
-    cout << leng, cout << '\n';
+    // setting the threshold
+    uint32_t t = 110;
 
-    NSS(test, thersh, print_output);
+    NSS(test, t, print_output);
 
+    // end the timer
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout<<"printf: "<< duration <<'\n';
-    cout<<total_counter << '\n';
-    cout << "klaar\n";
+    cout<<"execution duration: "<< duration <<'\n';
+    cout<<"total pairs: " << total_counter << '\n';
     cout.flush();
     return 0;
 }

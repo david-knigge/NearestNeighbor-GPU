@@ -54,7 +54,7 @@ __global__ void nns_kernel(uint32_t *vec_1, uint32_t *vecs, uint32_t *ret_vec,
 }
 
 // Takes an output list and prints the indices per line
-void printsomestuff(output_t *output) {
+void print_output(output_t *output) {
     for (uint32_t i = 0; i < (*output).size(); i++) {
         total_counter += 1;
         //printf("1: %d  ", output[i][0]);
@@ -66,7 +66,7 @@ void printsomestuff(output_t *output) {
 // takes in a reference to vector full of bitvec_t, an uint32 for the threshold
 // and a function for handling the output compares all the vectors in L and does
 //  Nearest neighbour search.
-void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
+void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
     // allocate space for all the variable pointers needed
     output_t output;
@@ -97,7 +97,7 @@ void NSS(const list_t& L, uint32_t *t, callback_list_t f)  {
     cudaMalloc((void **)&thresd, sizeof(uint32_t));
     cudaMalloc((void **)&l_sized, sizeof(uint32_t));
 
-    cudaMemcpy(thresd, t, sizeof(uint32_t), cudaMemcpyHostToDevice);
+    cudaMemcpy(thresd, &t, sizeof(uint32_t), cudaMemcpyHostToDevice);
     cudaMemcpy(l_sized, l_size, sizeof(uint32_t), cudaMemcpyHostToDevice);
 
     *vec = 1;
@@ -155,25 +155,22 @@ int main() {
     list_t test;
     uint32_t leng = 5000;
 
+    // starting the timer
     clock_t start;
     double duration;
     start = clock();
 
+    // generating the dataset
     generate_random_list(test, leng);
+    // setting the threshold
+    uint32_t t = 110;
 
-    // threshold
-    uint32_t *t;
-    t = (uint32_t *)malloc(sizeof(uint32_t));
-    *t = 110;
+    NSS(test, t, print_output);
 
-    cout << leng, cout << '\n';
-
-    NSS(test, t, printsomestuff);
-
+    // end the timer
     duration = (clock() - start ) / (double) CLOCKS_PER_SEC;
-    cout<<"printf: "<< duration <<'\n';
-    cout<<total_counter << '\n';
-    cout << "klaar\n";
+    cout<<"execution duration: "<< duration <<'\n';
+    cout<<"total pairs: " << total_counter << '\n';
     cout.flush();
     return 0;
 }
