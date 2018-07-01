@@ -6,7 +6,7 @@
 #include <iostream>
 #include "./generate_data.cpp"
 
-// VERSIE 1.2:
+// VERSION 1.2:
 // - with thresholding on the GPU
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
