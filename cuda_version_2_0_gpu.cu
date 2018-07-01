@@ -13,6 +13,8 @@
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 // using std::size_t;   // unsigned integer for indices
 
+int total_counter = 0;
+
 // type for bitvector
 typedef array<uint32_t, NW> bitvec_t;
 typedef array<uint32_t, 2> compound_t;
@@ -21,7 +23,7 @@ typedef vector<bitvec_t> list_t;
 typedef vector<compound_t> output_t;
 
 // type for any function that takes a list_t by reference
-typedef void(*callback_list_t)(output_t);
+typedef void(*callback_list_t)(output_t *);
 
 // takes in two pointers to the address of two bitvec_t's and a third pointer to
 // where the results need to go
@@ -33,7 +35,7 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs,
     uint32_t thread_id = threadIdx.x + blockIdx.x * blockDim.x;
     uint32_t prim_vec = *start_vec_id + thread_id;
     // the variable in which the amount of ones after the xor are added
-    uint32_t vectorweight, k;
+    uint32_t vectorweight, wordindex;
 
     // make sure the vectorindex is within the amount of vectors
     if (prim_vec < *l_size)  {
@@ -54,12 +56,13 @@ __global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs,
 }
 
 // Takes an output list and prints the indices per line
-__host__ void print_output(output_t output) {
-    for (uint32_t i = 0; i < output.size(); i++) {
-        //printf("%zu,", output[i][0]);
-        //printf("%zu\n", output[i][1]);
+__host__ void print_output(output_t *output) {
+    for (uint32_t i = 0; i < (*output).size(); i++) {
+        total_counter += 1;
+        //printf("1: %d  ", output[i][0]);
+        //printf("2: %d\n", output[i][1]);
     }
-    output.clear();
+    (*output).clear();
 }
 
 // takes in a reference to vector full of bitvec_t, an uint32 for the threshold
@@ -151,8 +154,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f) {
         }
 
         // Empty output list
-        f(output);
-        output.clear();
+        f(&output);
 
         // Retrieve found weights from GPU memory
         cudaMemcpy(ret_vec, ret_vecd,
@@ -179,8 +181,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f) {
     }
 
     // Empty output list
-    f(output);
-    output.clear();
+    f(&output);
 
     cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd); cudaFree(vecd_size);
     free(vec); free(ret_vec); free(vecs); free(vec_size); free(l_size);
