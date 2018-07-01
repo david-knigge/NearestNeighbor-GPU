@@ -8,7 +8,7 @@
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
 #define THREADS_PER_BLOCK 512 // Number of threads per block
-#define NUMBER_OF_THREADS 2048
+#define NUMBER_OF_THREADS 4096
 
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
 // using std::size_t;   // unsigned integer for indices
@@ -120,7 +120,7 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     *vec = 1;
     cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
 
-    nns_kernel<<< n_blocks, THREADS_PER_BLOCK>>>
+    nns_kernel<<< n_blocks, THREADS_PER_BLOCK >>>
                     (vecd, vecsd, ret_vecd, vecd_size, l_sized, thresd);
 
     cudaMemcpy(ret_vec, ret_vecd,

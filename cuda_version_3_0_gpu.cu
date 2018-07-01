@@ -25,38 +25,53 @@ typedef vector<compound_t> output_t;
 // type for any function that takes a list_t by reference
 typedef void(*callback_list_t)(output_t *);
 
-__global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs, uint32_t *ret_vec, uint32_t *vector_size, uint32_t *l_size, uint32_t *thres, uint32_t *o_size)
-{
+__global__ void nns_kernel(uint32_t *start_vec_id, uint32_t *vecs,
+                            uint32_t *ret_vec, uint32_t *vector_size,
+                            uint32_t *l_size, uint32_t *thres,
+                            uint32_t *o_size) {
+
+    // compute which vector the thread has to do the xor operation on
     uint32_t thread_id = threadIdx.x + blockIdx.x * blockDim.x;
     uint32_t prim_vec = *start_vec_id + thread_id;
-
+    // the variable in which the amount of ones after the xor are added
     uint32_t vectorweight, sec_vec, k, output_index;
     __shared__ unsigned int o_size_block;
 
+    // set the block size variable
     if (threadIdx.x == 0) {
         o_size_block = 0;
         o_size[blockIdx.x] = 0;
     }
     __syncthreads();
 
-    if (prim_vec < *l_size)
-    {
-        for (sec_vec = 0; sec_vec < prim_vec; sec_vec++){
+    // make sure the vectorindex is within the amount of vectors
+    if (prim_vec < *l_size) {
+        for (sec_vec = 0; sec_vec < prim_vec; sec_vec++) {
             vectorweight = 0;
-            for (k = 0; k < *vector_size; k++){
-                vectorweight += __popc(vecs[*vector_size * prim_vec + k] ^ vecs[*vector_size * sec_vec + k]);
+
+            /* for each word in the vector do the xor operation with the
+             * corresponding word of the other vector and count the ones
+             * with popc
+            */
+            for (k = 0; k < *vector_size; k++) {
+                vectorweight += __popc(vecs[*vector_size * prim_vec + k] ^
+                                        vecs[*vector_size * sec_vec + k]);
             }
-            // ret_vec = binary array (with 1 = hit, 0 = miss)
-            if (vectorweight < *thres){
+            // save the vector indices to the right memory place in case they
+            // are under the threshold
+            if (vectorweight < *thres) {
                 output_index = atomicAdd(&o_size_block, 1);
-                ret_vec[blockIdx.x * THREADS_PER_BLOCK * *l_size + (output_index * 2)] = prim_vec;
-                ret_vec[blockIdx.x * THREADS_PER_BLOCK * *l_size+ (output_index * 2) + 1] = sec_vec;
+                ret_vec[blockIdx.x * THREADS_PER_BLOCK * *l_size +
+                        (output_index * 2)] = prim_vec;
+                ret_vec[blockIdx.x * THREADS_PER_BLOCK * *l_size +
+                        (output_index * 2) + 1] = sec_vec;
                 o_size[blockIdx.x] = output_index + 1;
             }
         }
     }
 }
 
+// Takes an output list and prints the indices per line
 __host__ void clearlist(output_t *output) {
     for (uint32_t i = 0; i < (*output).size(); i++) {
         total_counter += 1;
@@ -68,34 +83,39 @@ __host__ void clearlist(output_t *output) {
 
 void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
 
+    // allocate space for all the variable pointers needed
     output_t output;
     bitvec_t *vecs;
     uint32_t *vec, *vecd, *vecsd, *ret_vecd, *ret_vec, *vec_size, *vecd_size,
-        *l_sized, *l_size, *thres, *thresd, *o_size, *o_sized, n_blocks, n_threads;
+        *l_sized, *l_size, *thres, *thresd, *o_size, *o_sized, n_blocks,
+        n_threads;
+
     n_blocks = (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
     n_threads = n_blocks * THREADS_PER_BLOCK;
+    l_size = (uint32_t *)malloc(sizeof(uint32_t));
+    *l_size = L.size();
 
     // Initialize Host memory for vectors
     vec = (uint32_t *)malloc(sizeof(uint32_t));
     vecs = (bitvec_t *)malloc(sizeof(bitvec_t) * L.size());
-    ret_vec = (uint32_t *)calloc(2 * L.size() * (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1), sizeof(uint32_t));
+    ret_vec = (uint32_t *)calloc(2 * *l_size *
+                (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1), sizeof(uint32_t));
     vec_size = (uint32_t *)malloc(sizeof(uint32_t));
-    l_size = (uint32_t *)malloc(sizeof(uint32_t));
     thres = (uint32_t *)malloc(sizeof(uint32_t));
     o_size = (uint32_t *)malloc((n_blocks) * sizeof(uint32_t));
 
     // Copy location of data in vector
-    memcpy(vecs, L.data(), L.size() * sizeof(bitvec_t));
+    memcpy(vecs, L.data(), *l_size * sizeof(bitvec_t));
 
     // Set vector size
     *vec_size = L[0].size();
-    *l_size = L.size();
     *thres = t;
 
     // Allocate device memory for needed data
     cudaMalloc((void **)&vecd, sizeof(bitvec_t));
     cudaMalloc((void **)&vecsd,*l_size * sizeof(bitvec_t));
-    cudaMalloc((void **)&ret_vecd, 2 * *l_size * (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) * sizeof(uint32_t));
+    cudaMalloc((void **)&ret_vecd, 2 * *l_size *
+                (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) * sizeof(uint32_t));
     cudaMalloc((void **)&vecd_size, sizeof(uint32_t));
     cudaMalloc((void **)&l_sized, sizeof(uint32_t));
     cudaMalloc((void **)&thresd, sizeof(uint32_t));
@@ -116,10 +136,14 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
     *vec = 1;
     cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
 
-    nns_kernel<<< n_blocks, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd, vecd_size, l_sized, thresd, o_sized);
+    nns_kernel<<< n_blocks, THREADS_PER_BLOCK>>>
+                (vecd, vecsd, ret_vecd, vecd_size, l_sized, thresd, o_sized);
 
-    cudaMemcpy(ret_vec, ret_vecd, 2 * *l_size * (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-    cudaMemcpy(o_size, o_sized, n_blocks * sizeof(uint32_t), cudaMemcpyDeviceToHost);
+    cudaMemcpy(ret_vec, ret_vecd, 2 * *l_size *
+                (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) * sizeof(uint32_t),
+                cudaMemcpyDeviceToHost);
+    cudaMemcpy(o_size, o_sized, n_blocks * sizeof(uint32_t),
+                cudaMemcpyDeviceToHost);
 
     uint32_t j, n_pairs, total_n_pairs, output_back;
     int i;
@@ -128,49 +152,56 @@ void NSS(const list_t& L, uint32_t t, callback_list_t f)  {
         *vec = i;
 
         cudaMemcpy(vecd, vec, sizeof(uint32_t), cudaMemcpyHostToDevice);
-        nns_kernel<<< n_blocks, THREADS_PER_BLOCK>>>(vecd, vecsd, ret_vecd, vecd_size, l_sized, thresd, o_sized);
+        nns_kernel<<< n_blocks, THREADS_PER_BLOCK >>>
+                    (vecd, vecsd, ret_vecd, vecd_size,
+                     l_sized, thresd, o_sized);
 
+        // compute the amount of indices to be copied back to the cpu
         total_n_pairs = 0;
-        for (j = 0; j < n_blocks; j++)
-        {
+        for (j = 0; j < n_blocks; j++) {
             total_n_pairs += o_size[j];
         }
         output_back = output.size();
         output.resize(output.size() + total_n_pairs);
-        for (j = 0; j < n_blocks; j++)
-        {
+        for (j = 0; j < n_blocks; j++) {
             n_pairs = o_size[j];
-            memcpy(&output[output_back], ret_vec + (j * THREADS_PER_BLOCK * *l_size), n_pairs * 2 * sizeof(uint32_t));
+            memcpy(&output[output_back], ret_vec +
+                    (j * THREADS_PER_BLOCK * *l_size),
+                    n_pairs * 2 * sizeof(uint32_t));
         }
         // Empty output list
         f(&output);
         output.clear();
 
         // Retrieve found weights from GPU memory
-        cudaMemcpy(ret_vec, ret_vecd, 2 * *l_size * (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) * sizeof(uint32_t), cudaMemcpyDeviceToHost);
-        cudaMemcpy(o_size, o_sized, n_blocks * sizeof(uint32_t), cudaMemcpyDeviceToHost);
+        cudaMemcpy(ret_vec, ret_vecd, 2 * *l_size *
+                    (NUMBER_OF_THREADS + THREADS_PER_BLOCK - 1) *
+                    sizeof(uint32_t), cudaMemcpyDeviceToHost);
+        cudaMemcpy(o_size, o_sized, n_blocks * sizeof(uint32_t),
+                    cudaMemcpyDeviceToHost);
     }
 
+    // compute the amount of indices to be copied back to the cpu
     total_n_pairs = 0;
-    for (j = 0; j < n_blocks; j++)
-    {
+    for (j = 0; j < n_blocks; j++) {
         total_n_pairs += o_size[j];
     }
     output_back = output.size();
     output.resize(output.size() + total_n_pairs);
-    for (j = 0; j < n_blocks; j++)
-    {
+    for (j = 0; j < n_blocks; j++) {
         n_pairs = o_size[j];
-        memcpy(&output[output_back], ret_vec + (j * THREADS_PER_BLOCK * *l_size), n_pairs * 2 * sizeof(uint32_t));
+        memcpy(&output[output_back], ret_vec +
+                (j * THREADS_PER_BLOCK * *l_size),
+                n_pairs * 2 * sizeof(uint32_t));
     }
     // Empty output list
     f(&output);
     output.clear();
 
-    cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd); cudaFree(vecd_size); cudaFree(l_sized);
-    cudaFree(thresd); cudaFree(o_sized);
-    free(vec); free(ret_vec); free(vecs); free(vec_size); free(l_size); free(thres);
-    free(o_size);
+    cudaFree(vecd); cudaFree(vecsd); cudaFree(ret_vecd); cudaFree(vecd_size);
+    cudaFree(l_sized); cudaFree(thresd); cudaFree(o_sized);
+    free(vec); free(ret_vec); free(vecs); free(vec_size); free(l_size);
+    free(thres); free(o_size);
 }
 
 int main() {
