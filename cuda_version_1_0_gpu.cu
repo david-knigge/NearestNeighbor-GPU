@@ -10,7 +10,7 @@
 // - zonder threshold op de gpu
 
 #define NW 8 // use bitvectors of d=NW*32 bits, example NW=8
-#define THREADS_PER_BLOCK 256 // Number of threads per block
+#define THREADS_PER_BLOCK 512 // Number of threads per block
 
 int total_counter = 0;
 using std::uint32_t; // 32-bit unsigned integer used inside bitvector
